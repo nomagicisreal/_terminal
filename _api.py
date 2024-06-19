@@ -30,16 +30,16 @@ def waitForInputFrom(values: dict, info: str) -> str:
 # 
 # 
 fileNameDownloadVedio = 'yt-dlp.py'
-fileNameAnalyzeData = 'analyzer.R'
+# fileNameAnalyzeData = 'analyzer.R'
 
 availableOptions = {
     'download vedio' : fileNameDownloadVedio,
-    'analyze data' : fileNameAnalyzeData,
+    # 'analyze data' : fileNameAnalyzeData,
 }
-availableFileTypes = {
-    '.csv' : 'csv',
-    '.sav' : 'sav',
-}    
+# availableFileTypes = {
+#     '.csv' : 'csv',
+#     '.sav' : 'sav',
+# }    
 
 #
 #
@@ -48,7 +48,7 @@ availableFileTypes = {
 #
 def findCommand(extension: str) -> str:
     if extension == 'py': return 'python3'
-    if extension == 'R':  return 'Rscript'
+    # if extension == 'R':  return 'Rscript'
     raise Exception(f'unimplment file type: .{extension}')
 
 def findPath(fileName: str) -> str:
@@ -58,9 +58,9 @@ def findPath(fileName: str) -> str:
     )
 
 def findArgs(fileName: str) -> str:
-    if fileName == fileNameAnalyzeData:
-        return waitForInputFrom(availableFileTypes, 'file types')
-    else:
+    # if fileName == fileNameAnalyzeData:
+        # return waitForInputFrom(availableFileTypes, 'file types')
+    # else:
         return ''
 
 # 

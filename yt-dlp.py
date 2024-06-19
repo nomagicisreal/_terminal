@@ -63,7 +63,7 @@ def findLocation() -> str:
 
 def findFormat() -> str:
     while (True):
-        format = input('vedio format (default: mp3): ')
+        format = input('file format (default: mp3): ')
         format = 'mp3' if format == '' else format
 
         if format in supportedAudioFormat:
