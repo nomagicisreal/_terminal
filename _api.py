@@ -29,11 +29,13 @@ def waitForInputFrom(values: dict, info: str) -> str:
 # options, availables
 # 
 # 
-fileNameDownloadVedio = 'yt-dlp.py'
+fileNameDownloadVideo = 'yt-dlp.py'
 # fileNameAnalyzeData = 'analyzer.R'
 
 availableOptions = {
-    'download vedio' : fileNameDownloadVedio,
+    'download video or audio' : fileNameDownloadVideo,
+    'download mp4' : fileNameDownloadVideo,
+    'download mp3' : fileNameDownloadVideo,
     # 'analyze data' : fileNameAnalyzeData,
 }
 # availableFileTypes = {
