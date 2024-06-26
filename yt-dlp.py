@@ -87,7 +87,7 @@ def argsFormat(format: str) -> str:
             return [extractAudio, formatAudio, format]
         elif format in supportedVideoFormat:
             requireBestVideo = input('require best video (Y/N): ').capitalize()
-            if requireBestVideo == 'Y':
+            if requireBestVideo == 'Y' or 'N':
                 format = f'bv*[ext={format}]+ba[ext=m4a]'
             else:
                 print(f'except Y/y or N/n: {requireBestVideo}')
@@ -122,7 +122,7 @@ commands.extend(argsLocation())
 import sys
 argv = sys.argv
 commands.extend(argsFormat(
-    format=input('file format (default: mp3): ') if len(argv) == 1 else argv[1]
+    format=input('file format (default: mp3): ') if len(argv) <= 2 else argv[1]
 ))
 
 subprocess.call(commands + [url])
