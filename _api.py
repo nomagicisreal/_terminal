@@ -6,7 +6,7 @@ import os.path as path
 # show information, wait until valid input
 #
 #
-def waitForInputFrom(values: dict, info: str) -> str:
+def waitForInputFrom(values: dict, info: str) -> list:
     names = list(values.keys())
     print(
         f'available {info}--\n' +
@@ -33,9 +33,9 @@ fileNameDownloadVideo = 'yt-dlp.py'
 # fileNameAnalyzeData = 'analyzer.R'
 
 availableOptions = {
-    'download video or audio' : fileNameDownloadVideo,
-    'download mp4' : fileNameDownloadVideo,
-    'download mp3' : fileNameDownloadVideo,
+    'download video or audio' : [fileNameDownloadVideo, 0],
+    'download mp3' : [fileNameDownloadVideo, 1],
+    'download mp4' : [fileNameDownloadVideo, 2],
     # 'analyze data' : fileNameAnalyzeData,
 }
 # availableFileTypes = {
@@ -59,26 +59,36 @@ def findPath(fileName: str) -> str:
         f'{fileName}',
     )
 
-def findArgs(fileName: str) -> str:
-    # if fileName == fileNameAnalyzeData:
-        # return waitForInputFrom(availableFileTypes, 'file types')
-    # else:
-        return ''
+def findArgs(fileName: str, option: int) -> list:
+
+    if fileName == fileNameDownloadVideo:
+        # below should be consist with [availableOptions]
+        if option == 0: return ['']
+        if option == 1: return ['mp3']
+        if option == 2: return ['mp4']
+        raise Exception(f'unimplement option {option} for file: {fileName}')
+    
+    raise Exception(f'unimplement file: {fileName}')
 
 # 
 # 
 # argument, subprocess
 # 
+# [fileName] [option]
 # 
-def argumentOf(fileName: str) -> list:
+def argumentOf(argv: list) -> list:
+    fileName: str = argv[0]
     names = fileName.split('.')
     assert(len(names) == 2, f'unknown file: {fileName}')
     return [
         findCommand(names[1]),
-        findPath(fileName),
-        findArgs(fileName),
-    ]
+        findPath(fileName)
+    ] + findArgs(fileName, argv[1])
 
-subprocess.call(argumentOf(waitForInputFrom(availableOptions, 'options')))
+subprocess.call(
+     argumentOf(
+          waitForInputFrom(availableOptions, 'options')
+     )
+)
 
 print('\n')

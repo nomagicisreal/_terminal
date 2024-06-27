@@ -86,13 +86,19 @@ def argsFormat(format: str) -> str:
         if format in supportedAudioFormat:
             return [extractAudio, formatAudio, format]
         elif format in supportedVideoFormat:
-            requireBestVideo = input('require best video (Y/N): ').capitalize()
-            if requireBestVideo == 'Y' or 'N':
+            if format == 'mp4':
                 format = f'bv*[ext={format}]+ba[ext=m4a]'
             else:
-                print(f'except Y/y or N/n: {requireBestVideo}')
-                continue
+                raise Exception('currently only support mp4 for my implementation (not for yt-dlp)')
             
+            # requireBestVideo = input('require best video (Y/N): ').capitalize()
+            # if requireBestVideo == 'Y':
+            #   format = f'bv*[ext={format}]+ba[ext=m4a]' # unimplement for N
+            # if requireBestVideo == 'N':
+            # 
+            # else:
+            #     print(f'except Y/y or N/n: {requireBestVideo}')
+            #     continue
             return [formatVideo, format]
         
         print(
@@ -121,9 +127,11 @@ commands.extend(argsLocation())
 
 import sys
 argv = sys.argv
-commands.extend(argsFormat(
-    format=input('file format (default: mp3): ') if len(argv) <= 2 else argv[1]
-))
+commands.extend(
+    argsFormat(
+        format=input('file format (default: mp3): ') if len(argv) == 1 else argv[1]
+    )
+)
 
 subprocess.call(commands + [url])
 
