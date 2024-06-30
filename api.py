@@ -74,3 +74,14 @@ def findArgs(fileName: str, option: int) -> list:
         raise Exception(f'unimplement option {option} for file: {fileName}')
 
     raise Exception(f'unimplement file: {fileName}')
+
+# 
+# 
+# y or n
+# 
+# 
+def yesOrNo(question: str) -> bool:
+    code = input(f'{question} (Y/N): ').capitalize()
+    if code == 'Y' or code == 'N':
+        return code == 'Y'
+    raise Exception('pleas input Y or N')

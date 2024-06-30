@@ -1,5 +1,6 @@
 import os
 from ffmpeg import *
+from api import yesOrNo
 
 print(
     '\n'
@@ -12,7 +13,9 @@ print(
 print(f'\nlocation: {os.getcwd()}')
 inputFormat = input('input format (default: mp4): ')
 outputFormat = input('output format (default: mov): ')
+removeTransformed = yesOrNo('remove transformed? ')
 transformAll(
     'mp4' if inputFormat == '' else inputFormat,
-    'mov' if outputFormat == '' else outputFormat
+    'mov' if outputFormat == '' else outputFormat,
+    removeTransformed
 )

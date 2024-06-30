@@ -13,7 +13,7 @@ def availableFiles() -> str:
 # 
 # 
 # 
-embedThmbnail: str = '--embed-thumbnail'
+embedThumbnail: str = '--embed-thumbnail'
 yesPlaylist: str = '--yes-playlist'
 
 output: str = '-o'

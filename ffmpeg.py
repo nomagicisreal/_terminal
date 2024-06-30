@@ -1,4 +1,5 @@
 import subprocess
+import os
 from ytdlp import availableFiles
 
 # extract thumbnail from audio:
@@ -10,13 +11,18 @@ from ytdlp import availableFiles
 command = 'ffmpeg'
 argInput = '-i'
 
-def transformAll(extIn: str, extOut: str):
-    all = [files for files in availableFiles() if files.split('.')[1] == extIn]
+def _transformThenDelete(argv: list):
+    subprocess.call(argv)
+    os.remove(argv[2])
+
+def transformAll(extIn: str, extOut: str, removeTransformed: bool):
+    # all = [files for files in availableFiles() if files.split('.')[1] == extIn]
+    transform = _transformThenDelete if removeTransformed else lambda argv : subprocess.call(argv)
     for files in availableFiles():
         names = files.split('.')
         if names[1] == extIn:
-            subprocess.call([
+            transform([
                 command,
                 argInput, files,
-                f'{names[0]}.{extOut}']
-            )
+                f'{names[0]}.{extOut}'
+            ])

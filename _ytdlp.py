@@ -12,9 +12,19 @@ print(
     '-----------------------------------------------\n'
 )
 
-url = input('url: ')
+url: str = ''
+while url == '':
+    url = input('url: ')
+
 commands = ['yt-dlp']
-commands.append(embedThmbnail)
+
+# commands.append(embedThumbnail) # error on instagram post for youtube
+
+# for domain in enumerate(url.split('.')):
+#     if domain == 'youtube':
+#         commands.append(embedThumbnail)
+#         break
+
 commands.extend(argsLocation())
 inputFormat = input('file format (default: mp3): ') if option == '' else option
 commands.extend(
