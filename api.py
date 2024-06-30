@@ -81,7 +81,9 @@ def findArgs(fileName: str, option: int) -> list:
 # 
 # 
 def yesOrNo(question: str) -> bool:
-    code = input(f'{question} (Y/N): ').capitalize()
-    if code == 'Y' or code == 'N':
-        return code == 'Y'
+    code = input(f'{question} (Y/N, default: Y): ').capitalize()
+    if code == '' or code == 'Y':
+        return True
+    if code == 'N':
+        return False
     raise Exception('pleas input Y or N')
