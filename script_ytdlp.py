@@ -1,15 +1,9 @@
-import os
-
-def availableDirs() -> str:
-    return next(os.walk('.'))[1]
-
-def availableFiles() -> str:
-    return next(os.walk('.'))[2]
+from script_api import *
 
 # 
 # 
 # 
-# variables
+# constants
 # 
 # 
 # 
@@ -28,49 +22,57 @@ supportedVideoFormat = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'] # see also ht
 
 # 
 # 
-# 
-# args location
-# 
+# url
 # 
 # 
-def argsLocation() -> str:
-    path : str
-    while (True):
-        location = input(f'file location (default: {os.getcwd()}): ')
+def requireUrl() -> str:
+    url: str = ''
+    while url == '':
+        url = input('url: ')
+    return url
 
-        args = location.split()
+# 
+# 
+# thumbnail
+# 
+#   - instagram: x
+#   - youtube: o
+# 
+def requireThumbnailFor(url: str) -> list:
+    if 'instagram' in url:
+        return []
+    else:
+        return [embedThumbnail]
+
+
+
+# 
+# 
+# 
+# require location
+# 
+# 
+# 
+def requireLocation() -> str:
+    while True:
+        destination = askForLocation()
+
+        args = destination.split()
         argsLength = len(args)
         if argsLength == 0:
-            path = outputFileNameFormat
-            break
+            return outputFileNameFormat
         
         if argsLength == 1:
-            path = f'{args[0]}/{outputFileNameFormat}'
-            break
+            return f'{args[0]}/{outputFileNameFormat}'
         
         if argsLength == 2:
             command = args[0]
-            location = args[1]
-
             if command == 'cd':
-                try:
-                    os.chdir(location)
-                    print(f'availables dirs: {availableDirs()}')
-                    continue
-                except FileNotFoundError:
-                    print(
-                        f'directory not found: {location},\n'
-                        f'availables: {availableDirs()}\n'
-                    )
+                chooseDirectoryOn(args[1])
+                continue
         
-        print(
-            f"unknown command: {args}\n"
-            "USAGES:\n"
-            "\t1. press enter to ensure the default location\n"
-            "\t2. 'cd /your_path', pending to provide a location\n"
-        )
+        askForLocationInstruction(args)
     
-    return [output, path]
 
 # 
 # 
@@ -79,7 +81,17 @@ def argsLocation() -> str:
 # 
 # 
 # 
-def argsFormat(format: str) -> str:
+def getInputFormatFrom(option: str):
+    if option == optionDowloadVideoOrAudio:
+        return input('file format (default: mp3): ')
+    elif option == optionDowloadMp3:
+        return 'mp3'
+    elif option == optionDowloadMp4:
+        return 'mp4'
+    
+    raiseUnimplementOption(__file__, option)
+
+def requireFormat(format: str) -> str:
     while (True):
         if format in supportedAudioFormat:
             return [extractAudio, formatAudio, format]
