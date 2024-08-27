@@ -1,6 +1,6 @@
 import subprocess
 import os
-from script_api import yesOrNo, printCwd
+from script_api import yesOrNo
 from script_ytdlp import availableFiles
 
 # extract thumbnail from audio:
@@ -19,7 +19,6 @@ argInput = '-i'
 # 
 # 
 def decideSubprocessOf(option: str):
-    printCwd()
 
     from script_api import optionTransformVideoOrAudio, optionGetTotalDurationOfVideoOrAudio, optionGetTotalDurationOfMp3
     if option == optionTransformVideoOrAudio:

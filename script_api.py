@@ -39,17 +39,32 @@ availableOptions = {
 # 
 # 
 # 
-def availableDirs() -> str:
+def availableDirs() -> list:
     return next(os.walk('.'))[1]
 
-def availableFiles() -> str:
-    return next(os.walk('.'))[2]
-
-def printCwd(): print(f'location: {os.getcwd()}')
+def availableFiles(excludeSub: bool = True) -> list:
+    global children
+    children = next(os.walk('.'))
+    if not excludeSub:
+        return children[2]
+    
+    files: list = children[2]
+    def nestedExtend(children: list, parent: str = ''):
+        for subDir in children:
+            os.chdir(subDir)
+            children = next(os.walk('.'))
+            p = path.join(parent, subDir)
+            files.extend(path.join(p, child) for child in children[2])
+            if not children[1]:
+                nestedExtend(children[1], p)
+            os.chdir('..')
+    
+    nestedExtend(children[1])
+    return files.copy()
 
 basenameOfPath = lambda path: os.path.basename(path)
 
-def askForLocation() -> str: return input(f'location (default: {os.getcwd()}): ')
+def askForLocation() -> str: return input(f'location ({os.getcwd()}): ')
 
 def askForLocationInstruction(arg: str):
     print(
@@ -146,6 +161,8 @@ def whileInputValid() -> list:
     )
     while True:
         option: str = input('your option: ')
+        if option == '':
+            continue
         errorMessage: str = f'\nno such option: {option}\n'
 
         try:
