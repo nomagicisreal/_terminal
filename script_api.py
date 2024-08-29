@@ -39,32 +39,43 @@ availableOptions = {
 # 
 # 
 # 
-def availableDirs() -> list:
-    return next(os.walk('.'))[1]
+osPathBasename = lambda path: os.path.basename(path)
+osPathSplitext = lambda pathName: os.path.splitext(pathName)
+osPathForExtension = lambda pathName: os.path.splitext(pathName)[1][1:]
 
-def availableFiles(excludeSub: bool = True) -> list:
-    global children
-    children = next(os.walk('.'))
-    if not excludeSub:
-        return children[2]
+# cwdChildren[1] are directories
+# cwdChildren[2] are files
+cwdChildren = lambda : next(os.walk('.'))
+
+
+# def availableFiles(excludeSub: bool = True) -> list:
+def foreachFiles(consume, includeSub: bool = True):
+    children = cwdChildren()
+
+    print(f'calculating for location ...')
+    [consume(child) for child in children[2]]
     
-    files: list = children[2]
-    def nestedExtend(children: list, parent: str = ''):
-        for subDir in children:
+    if not includeSub:
+        return
+
+    def nesting(subDirs: list, parent: str = ''):
+        for subDir in subDirs:
             os.chdir(subDir)
-            children = next(os.walk('.'))
+            children = cwdChildren()
             p = path.join(parent, subDir)
-            files.extend(path.join(p, child) for child in children[2])
-            if not children[1]:
-                nestedExtend(children[1], p)
+
+            if children[1]:
+                nesting(children[1], p)
+
+            if children[2]:
+                print(f'calculating for /{p} ...')
+                [consume(child) for child in children[2]]
+            
             os.chdir('..')
     
-    nestedExtend(children[1])
-    return files.copy()
+    nesting(children[1])
 
-basenameOfPath = lambda path: os.path.basename(path)
-
-def askForLocation() -> str: return input(f'location ({os.getcwd()}): ')
+def askForLocation() -> str: return input(f'location (default: {os.getcwd()}): ')
 
 def askForLocationInstruction(arg: str):
     print(
@@ -122,7 +133,7 @@ def handleOptionForScript(scriptName: str, option: int) -> list:
 # 
 def yesOrNo(question: str) -> bool:
     code = input(f'{question} (Y/N, default: Y): ').capitalize()
-    if code == '' or code == 'Y':
+    if not code or code == 'Y':
         return True
     if code == 'N':
         return False
@@ -135,7 +146,7 @@ def yesOrNo(question: str) -> bool:
 # 
 # 
 def raiseUnimplementOption(path: str, option: str):
-    raise Exception(f'unimplement option: {option} for script: {basenameOfPath(path)}')
+    raise Exception(f'unimplement option: {option} for script: {osPathBasename(path)}')
 
 
 
