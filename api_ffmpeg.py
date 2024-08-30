@@ -7,6 +7,17 @@
 # 
 # 
 
-from script_ffmpeg import decideSubprocessOf
+def decideSubProcess(option: str):
+    from script_api import usecaseTransformVideoOrAudio, usecaseGetTotalDurationOfVideoOrAudio, usecaseGetTotalDurationOfMp3
+    from script_ffmpeg import readyToTransform, readyToSummarize
+    if option == usecaseTransformVideoOrAudio: return readyToTransform()
+    if option == usecaseGetTotalDurationOfVideoOrAudio: return readyToSummarize()
+    if option == usecaseGetTotalDurationOfMp3: return readyToSummarize('mp3')
+    
+    from script import raiseUnimplementUsecase
+    from script_ffmpeg import argEnvironment
+    raiseUnimplementUsecase(argEnvironment, option)
+
+
 from sys import argv
-decideSubprocessOf(argv[1])
+decideSubProcess(argv[1])

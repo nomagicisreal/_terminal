@@ -8,34 +8,26 @@
 # 
 # 
 
-commands = ['yt-dlp']
-
-# 
-# url
-# 
-from script_ytdlp import *
-url = requireUrl()
-
-#
-# thumbnail
-#
-commands.extend(requireThumbnailFor(url))
-
-#
-# location
-#
-commands.extend([output, requireLocation()])
-
-# 
-# format
-# 
-import sys
-commands.extend(requireFormat(getInputFormatFrom(sys.argv[1])))
+def decideSubprocess(option: str):
+    from script_ytdlp import argEnvironment
+    from script_api import usecaseDowloadMp3, usecaseDowloadMp4, usecaseDowloadVideoOrAudio
+    
+    if option in [usecaseDowloadMp3, usecaseDowloadMp4, usecaseDowloadVideoOrAudio]:
+        from script_ytdlp import requireThumbnailIf, whileInputLocation, whileInputFormat, checkInputFormatFrom
+        from script import whileInputUrl
+        from subprocess import call
+        url = whileInputUrl()
+        commands = [argEnvironment]
+        commands.extend(requireThumbnailIf(supportedUrl=url))
+        commands.extend(whileInputLocation())
+        commands.extend(whileInputFormat(defaultOption=option))
+        call(commands + [url])
+        return
 
 
-# 
-# 
-# 
-# 
-import subprocess
-subprocess.call(commands + [url])
+    from script import raiseUnimplementUsecase
+    raiseUnimplementUsecase(argEnvironment, option)
+    
+
+from sys import argv
+decideSubprocess(argv[1])

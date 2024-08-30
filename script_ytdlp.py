@@ -1,4 +1,5 @@
-from script_api import *
+from script import raiseUnimplementUsecase
+from script import askForLocation, askForLocationInstruction, chooseDirectoryOn
 
 # 
 # 
@@ -7,29 +8,19 @@ from script_api import *
 # 
 # 
 # 
-embedThumbnail: str = '--embed-thumbnail'
-yesPlaylist: str = '--yes-playlist'
+argEnvironment = 'yt-dlp'
+argEmbedThumbnail: str = '--embed-thumbnail'
+argYesPlaylist: str = '--yes-playlist'
 
-output: str = '-o'
-outputFileNameFormat: str = f'%(title)s'
+argOutput: str = '-o'
+argOutputFileNameFormat: str = f'%(title)s'
 
 # see also https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#format-selection-examples
-extractAudio: str = '-x'
-formatAudio: str = '--audio-format'
-formatVideo: str = '-f'
-supportedAudioFormat = ['best', 'aac', 'alac', 'flac', 'm4a', 'mp3', 'opus', 'vorbis', 'wav'] # see also https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#post-processing-options
-supportedVideoFormat = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'] # see also https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#video-format-options
-
-# 
-# 
-# url
-# 
-# 
-def requireUrl() -> str:
-    url: str = ''
-    while url == '':
-        url = input('url: ')
-    return url
+argExtractAudio: str = '-x'
+argFormatAudio: str = '--audio-format'
+argFormatVideo: str = '-f'
+argSupportedAudioFormat = ['best', 'aac', 'alac', 'flac', 'm4a', 'mp3', 'opus', 'vorbis', 'wav'] # see also https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#post-processing-options
+argSupportedVideoFormat = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'] # see also https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#video-format-options
 
 # 
 # 
@@ -38,11 +29,11 @@ def requireUrl() -> str:
 #   - instagram: x
 #   - youtube: o
 # 
-def requireThumbnailFor(url: str) -> list:
-    if 'instagram' in url:
+def requireThumbnailIf(supportedUrl: str) -> list:
+    if 'instagram' in supportedUrl:
         return []
     else:
-        return [embedThumbnail]
+        return [argEmbedThumbnail]
 
 
 
@@ -53,17 +44,17 @@ def requireThumbnailFor(url: str) -> list:
 # 
 # 
 # 
-def requireLocation() -> str:
+def whileInputLocation() -> str:
     while True:
         destination = askForLocation()
 
         args = destination.split()
         argsLength = len(args)
         if argsLength == 0:
-            return outputFileNameFormat
+            return [argOutput, argOutputFileNameFormat]
         
         if argsLength == 1:
-            return f'{args[0]}/{outputFileNameFormat}'
+            return [argOutput, f'{args[0]}/{argOutputFileNameFormat}']
         
         if argsLength == 2:
             command = args[0]
@@ -81,31 +72,30 @@ def requireLocation() -> str:
 # 
 # 
 # 
-def getInputFormatFrom(option: str):
-    if option == optionDowloadVideoOrAudio:
-        return input('file format (default: mp3): ')
-    elif option == optionDowloadMp3:
-        return 'mp3'
-    elif option == optionDowloadMp4:
-        return 'mp4'
-    
-    raiseUnimplementOption(__file__, option)
-
-def requireFormat(format: str) -> str:
-    while (True):
-        if format in supportedAudioFormat:
-            return [extractAudio, formatAudio, format]
-        elif format in supportedVideoFormat:
+def whileInputFormat(defaultOption: str) -> str:
+    format = checkInputFormatFrom(defaultOption)
+    while True:
+        if format in argSupportedAudioFormat:
+            return [argExtractAudio, argFormatAudio, format]
+        elif format in argSupportedVideoFormat:
             if format == 'mp4':
                 format = f'bv*[ext={format}]+ba[ext=m4a]'
             else:
                 raise Exception('currently only support mp4 with my implementation')
-            return [formatVideo, format]
+            return [argFormatVideo, format]
         
         print(
             f"unknown command: {format}\n"
             "USAGES:\n"
             f"\t1. press enter to ensure the default format\n"
-            f"\t2. input an audio format of {supportedAudioFormat}\n"
-            f"\t3. input a video format of {supportedVideoFormat}\n"
+            f"\t2. input an audio format of {argSupportedAudioFormat}\n"
+            f"\t3. input a video format of {argSupportedVideoFormat}\n"
         )
+
+def checkInputFormatFrom(defaultOption: str):
+    from script_api import usecaseDowloadVideoOrAudio, usecaseDowloadMp3, usecaseDowloadMp4
+    if defaultOption == usecaseDowloadVideoOrAudio: return input('format (default: mp3): ')
+    elif defaultOption == usecaseDowloadMp3: return 'mp3'
+    elif defaultOption == usecaseDowloadMp4: return 'mp4'
+    
+    raiseUnimplementUsecase(argEnvironment, defaultOption)
