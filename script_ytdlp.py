@@ -1,5 +1,4 @@
-from script import raiseUnimplementUsecase
-from script import askForLocation, askForLocationInstruction, chooseDirectoryOn
+from script import raiseUnimplementUsecase, whileEnsureFileLocation
 
 # 
 # 
@@ -35,35 +34,9 @@ def requireThumbnailIf(supportedUrl: str) -> list:
     else:
         return [argEmbedThumbnail]
 
-
-
-# 
-# 
-# 
-# require location
-# 
-# 
-# 
-def whileInputLocation() -> str:
-    while True:
-        destination = askForLocation()
-
-        args = destination.split()
-        argsLength = len(args)
-        if argsLength == 0:
-            return [argOutput, argOutputFileNameFormat]
-        
-        if argsLength == 1:
-            return [argOutput, f'{args[0]}/{argOutputFileNameFormat}']
-        
-        if argsLength == 2:
-            command = args[0]
-            if command == 'cd':
-                chooseDirectoryOn(args[1])
-                continue
-        
-        askForLocationInstruction(args)
-    
+def requireLocation() -> list:
+    whileEnsureFileLocation()
+    return [argOutput, argOutputFileNameFormat]
 
 # 
 # 
@@ -72,7 +45,7 @@ def whileInputLocation() -> str:
 # 
 # 
 # 
-def whileInputFormat(defaultOption: str) -> str:
+def requireInputFormat(defaultOption: str) -> str:
     format = checkInputFormatFrom(defaultOption)
     while True:
         if format in argSupportedAudioFormat:

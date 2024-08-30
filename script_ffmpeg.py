@@ -1,25 +1,28 @@
 import subprocess
 import os
 from script import osPathExtension, osPathSplitext
-from script import askForLocation, askForLocationInstruction
-from script import foreachFiles, chooseDirectoryOn, whileInputYorN
 
+# 
+# 
+# constaints
+# 
+# 
 argEnvironment = 'ffmpeg'
 argInput = '-i'
 argMetadataSV = '-metadata:s:v'
-command = lambda source : [argEnvironment, argInput, source]
 
 # 
 # 
+# lambdas
 # 
 # 
-# 
-informationOf = lambda file: subprocess.run(
-    command(file),
+commandFor = lambda source : [argEnvironment, argInput, source]
+informationOf = lambda fileName: subprocess.run(
+    commandFor(fileName),
     capture_output= True,
 ).stderr.decode()
 
-thumbnailExtract = lambda source, format: subprocess.call(command(source) + [
+thumbnailExtract = lambda source, format: subprocess.call(commandFor(source) + [
     '-an', '-c:v', 'copy',
     f'{osPathSplitext(source)[0]}.{format}'
 ]) # ffmpeg -i in.mp3 -an -c:v copy image.jpg
@@ -51,14 +54,16 @@ thumbnailExtract = lambda source, format: subprocess.call(command(source) + [
 # 
 # 
 def readyToTransform(forall: bool = True):
-    inputFormat = input('input format (default: mp4) forall: ')
-    outputFormat = input('output format (default: mov) forall: ')
-    removeTransformed = whileInputYorN('remove transformed ? ')
-    
     if not forall:
         from script import raiseUnimplementUsecase
         raiseUnimplementUsecase(argEnvironment, 'transform partial file')
-
+    
+    from script import whileInputYorN
+    print('ready to transform all files ...')
+    inputFormat = input('input format (default: mp4): ')
+    outputFormat = input('output format (default: mov) forall: ')
+    removeTransformed = whileInputYorN('remove transformed ? ')
+    
     transformAll(
         inputFormat if inputFormat else 'mp4',
         outputFormat if outputFormat else 'mov',
@@ -76,8 +81,9 @@ def transformAll(extIn: str, extOut: str, removeTransformed: bool):
         names = osPathSplitext(fileName)
         if names[1][1:] == extIn:
             print(fileName)
-            transform(command(fileName) + [f'{names[0]}.{extOut}'])
+            transform(commandFor(fileName) + [f'{names[0]}.{extOut}'])
     
+    from script import foreachFiles
     foreachFiles(transforming)
 
 
@@ -93,25 +99,8 @@ def readyToSummarize(extension: str):
         extension = input('summarize the duration of file type (default: mp3):')
         extension = extension if extension else 'mp3'
 
-    while True:
-        source = askForLocation()
-
-        args = source.split()
-        argsLength = len(args)
-        if argsLength == 0:
-            break
-        
-        if argsLength == 1:
-            chooseDirectoryOn(args[0])
-            break
-        
-        if argsLength == 2:
-            command = args[0]
-            if command == 'cd':
-                chooseDirectoryOn(args[1])
-                continue
-        
-        askForLocationInstruction(args)
+    from script import whileEnsureFileLocation
+    whileEnsureFileLocation
 
     summarizeDurations(extension)
     
@@ -140,7 +129,7 @@ def summarizeDurations(extension: str):
                 seconds=duration.second,
             )
 
-    
+    from script import foreachFiles
     foreachFiles(consuming)
     
     if count == 0:

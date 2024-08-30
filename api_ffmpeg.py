@@ -1,13 +1,13 @@
 # 
 # 
 # -----------------------------------------------
-# ffmpeg.py helps the operations on audio & vedio.
+# api_ffmpeg.py helps the operations on audio & vedio.
 # It's an implementation for https://ffmpeg.org/ 
 # -----------------------------------------------
 # 
 # 
 
-def decideSubProcess(option: str):
+def decideSubprocess(option: str):
     from script_api import usecaseTransformVideoOrAudio, usecaseGetTotalDurationOfVideoOrAudio, usecaseGetTotalDurationOfMp3
     from script_ffmpeg import readyToTransform, readyToSummarize
     if option == usecaseTransformVideoOrAudio: return readyToTransform()
@@ -20,4 +20,4 @@ def decideSubProcess(option: str):
 
 
 from sys import argv
-decideSubProcess(argv[1])
+decideSubprocess(argv[1])

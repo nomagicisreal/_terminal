@@ -1,6 +1,5 @@
 import os.path as path
 import os
-import subprocess
 
 # 
 # 
@@ -19,14 +18,6 @@ osPathExtension = lambda name: path.splitext(name)[1][1:]
 cwdChildren = lambda : next(os.walk('.'))
 cwdDirectories = lambda : cwdChildren()[0]
 cwdFiles = lambda : cwdChildren()[1]
-
-askForLocation = lambda : input(f'location (default: {os.getcwd()}): ')
-askForLocationInstruction = lambda arg : print(
-    f"unknown command: {arg}\n"
-    "USAGES:\n"
-    "\t1. press enter to ensure the default location\n"
-    "\t2. 'cd /your_path', pending to provide a location\n"
-)
 
 #
 #
@@ -103,7 +94,7 @@ def whileInputValidOption(options: dict) -> list:
     while True:
         o: str = input('your option: ')
         if not o: continue
-        errorMessage: str = f'\nno such option: {o}\n'
+        errorMessage: str = f'no such option: {o}\n'
 
         try:
              name = optionNames[int(o)-1]
@@ -113,3 +104,26 @@ def whileInputValidOption(options: dict) -> list:
         except Exception as e:  errorMessage = e
         print(errorMessage)
     
+def whileEnsureFileLocation():
+    while True:
+        destination = input(f'location (default: {os.getcwd()}): ')
+
+        args = destination.split()
+        argsLength = len(args)
+        if argsLength == 0: return
+        if argsLength == 1:
+            chooseDirectoryOn(args[0])
+            return
+        
+        if argsLength == 2:
+            command = args[0]
+            if command == 'cd':
+                chooseDirectoryOn(args[1])
+                continue
+        
+        print(
+            f"unknown command: {args}\n"
+            "USAGES:\n"
+            "\t1. press enter to ensure the current location\n"
+            "\t2. 'cd [your_path]'\n"
+        )
