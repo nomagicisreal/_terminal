@@ -8,23 +8,55 @@
 # 
 # 
 
-def decideSubprocess(option: str):
+from script_api import usecaseDowloadMp3, usecaseDowloadMp4, usecaseDowloadVideoOrAudio
+from script_api import usecaseDowloadMultipleMp3, usecaseDowloadMultipleMp3OnCwd
+supportedUsecases = [
+    usecaseDowloadMp3, usecaseDowloadMp4, usecaseDowloadVideoOrAudio,
+    usecaseDowloadMultipleMp3, usecaseDowloadMultipleMp3OnCwd,
+]
+
+supportedUsecasesForLoop = [
+    usecaseDowloadMultipleMp3, usecaseDowloadMultipleMp3OnCwd,
+]
+
+def decideSubprocess(usecase: str):
     from script_ytdlp import argEnvironment
-    from script_api import usecaseDowloadMp3, usecaseDowloadMp4, usecaseDowloadVideoOrAudio
-    if option in [usecaseDowloadMp3, usecaseDowloadMp4, usecaseDowloadVideoOrAudio]:
-        from script_ytdlp import requireThumbnailIf, requireInputFormat, requireLocation
+    if usecase in supportedUsecases:
+
+        def extendingArgs(askForLocation: bool, url: str, usecase: str) -> list: 
+            from script_ytdlp import argsForThumbnailIf, argsForInputFormat, argsForLocation
+            return argsForLocation(asking=askForLocation) + argsForThumbnailIf(supportedUrl=url) + argsForInputFormat(defaultUsecase=usecase)
+
         from script import whileInputUrl
         from subprocess import call
+
+        if usecase in supportedUsecasesForLoop:
+            asking = False if usecase == usecaseDowloadMultipleMp3OnCwd else True
+            while True:
+                print("enter 'q' to exist loop")
+                url = whileInputUrl()
+                if url == 'q': return
+                call(
+                    [argEnvironment] + extendingArgs(
+                        askForLocation=asking,
+                        url=url,
+                        usecase=usecase,
+                    ) + [url]
+                )
+                print('\n')
+
         url = whileInputUrl()
-        commands = [argEnvironment]
-        commands.extend(requireThumbnailIf(supportedUrl=url))
-        commands.extend(requireLocation())
-        commands.extend(requireInputFormat(defaultOption=option))
-        call(commands + [url])
+        call(
+            [argEnvironment] + extendingArgs(
+                askForLocation=True,
+                url=url,
+                usecase=usecase,
+            ) + [url]
+        )
         return
 
     from script import raiseUnimplementUsecase
-    raiseUnimplementUsecase(argEnvironment, option)
+    raiseUnimplementUsecase(argEnvironment, usecase)
     
 
 from sys import argv

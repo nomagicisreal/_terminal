@@ -105,7 +105,7 @@ def readyToSummarize(extension: str):
     summarizeDurations(extension)
     
 def summarizeDurations(extension: str):
-    from datetime import timedelta, datetime
+    from datetime import timedelta
     from script_datetime import findingTime
 
     global delta

@@ -36,9 +36,11 @@ def argsForCompilingEnvironment(extension: str) -> str:
 # 
 # 
 # 
-usecaseDowloadVideoOrAudio = 'download video|audio'
-usecaseDowloadMp3 = 'download mp3'
-usecaseDowloadMp4 = 'download mp4'
+usecaseDowloadVideoOrAudio = 'download 1 video|audio'
+usecaseDowloadMp3 = 'download 1 mp3'
+usecaseDowloadMp4 = 'download 1 mp4'
+usecaseDowloadMultipleMp3 = 'download multiple mp3'
+usecaseDowloadMultipleMp3OnCwd = 'download multiple mp3 on current working directory'
 usecaseTransformVideoOrAudio = 'transform format of video|audio'
 usecaseGetTotalDurationOfVideoOrAudio = 'get duration forall video|audio'
 usecaseGetTotalDurationOfMp3 = 'get duration forall mp3'
@@ -50,6 +52,8 @@ availableUsecases = {
     usecaseDowloadVideoOrAudio : scriptApiForYtdlp,
     usecaseDowloadMp3 : scriptApiForYtdlp,
     usecaseDowloadMp4 : scriptApiForYtdlp,
+    usecaseDowloadMultipleMp3 : scriptApiForYtdlp,
+    usecaseDowloadMultipleMp3OnCwd : scriptApiForYtdlp,
     # 'download mp3 into different folder by categories' : [fileNameDownloadVideo, 3],
     # 'download mp4 into different folder by categories' : [fileNameDownloadVideo, 4],
     usecaseTransformVideoOrAudio : scriptApiForFfmpeg,

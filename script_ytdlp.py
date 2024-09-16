@@ -28,14 +28,14 @@ argSupportedVideoFormat = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'] # see also
 #   - instagram: x
 #   - youtube: o
 # 
-def requireThumbnailIf(supportedUrl: str) -> list:
+def argsForThumbnailIf(supportedUrl: str) -> list:
     if 'instagram' in supportedUrl:
         return []
     else:
         return [argEmbedThumbnail]
 
-def requireLocation() -> list:
-    whileEnsureFileLocation()
+def argsForLocation(asking: bool) -> list:
+    if asking: whileEnsureFileLocation()
     return [argOutput, argOutputFileNameFormat]
 
 # 
@@ -45,8 +45,8 @@ def requireLocation() -> list:
 # 
 # 
 # 
-def requireInputFormat(defaultOption: str) -> str:
-    format = checkInputFormatFrom(defaultOption)
+def argsForInputFormat(defaultUsecase: str) -> str:
+    format = checkInputFormatFrom(defaultUsecase)
     while True:
         if format in argSupportedAudioFormat:
             return [argExtractAudio, argFormatAudio, format]
@@ -65,10 +65,13 @@ def requireInputFormat(defaultOption: str) -> str:
             f"\t3. input a video format of {argSupportedVideoFormat}\n"
         )
 
-def checkInputFormatFrom(defaultOption: str):
+def checkInputFormatFrom(defaultUsecase: str):
     from script_api import usecaseDowloadVideoOrAudio, usecaseDowloadMp3, usecaseDowloadMp4
-    if defaultOption == usecaseDowloadVideoOrAudio: return input('format (default: mp3): ')
-    elif defaultOption == usecaseDowloadMp3: return 'mp3'
-    elif defaultOption == usecaseDowloadMp4: return 'mp4'
+    from script_api import usecaseDowloadMultipleMp3, usecaseDowloadMultipleMp3OnCwd
+    if defaultUsecase == usecaseDowloadVideoOrAudio: return input('format (default: mp3): ')
+    elif defaultUsecase == usecaseDowloadMp3: return 'mp3'
+    elif defaultUsecase == usecaseDowloadMp4: return 'mp4'
+    elif defaultUsecase == usecaseDowloadMultipleMp3: return 'mp3'
+    elif defaultUsecase == usecaseDowloadMultipleMp3OnCwd: return 'mp3'
     
-    raiseUnimplementUsecase(argEnvironment, defaultOption)
+    raiseUnimplementUsecase(argEnvironment, defaultUsecase)
