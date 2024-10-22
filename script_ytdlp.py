@@ -9,6 +9,7 @@ from script import raiseUnimplementUsecase, whileEnsureFileLocation
 # 
 argEnvironment = 'yt-dlp'
 argEmbedThumbnail: str = '--embed-thumbnail'
+argCookiesFromBrowser: str = '--cookies-from-browser'
 argYesPlaylist: str = '--yes-playlist'
 
 argOutput: str = '-o'
@@ -28,9 +29,10 @@ argSupportedVideoFormat = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'] # see also
 #   - instagram: x
 #   - youtube: o
 # 
-def argsForThumbnailIf(supportedUrl: str) -> list:
+def argsForPlatform(supportedUrl: str) -> list:
     if 'instagram' in supportedUrl:
-        return []
+        # return []
+        return [argCookiesFromBrowser, 'chrome']
     else:
         return [argEmbedThumbnail]
 

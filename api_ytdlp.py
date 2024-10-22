@@ -24,8 +24,8 @@ def decideSubprocess(usecase: str):
     if usecase in supportedUsecases:
 
         def extendingArgs(askForLocation: bool, url: str, usecase: str) -> list: 
-            from script_ytdlp import argsForThumbnailIf, argsForInputFormat, argsForLocation
-            return argsForLocation(asking=askForLocation) + argsForThumbnailIf(supportedUrl=url) + argsForInputFormat(defaultUsecase=usecase)
+            from script_ytdlp import argsForPlatform, argsForInputFormat, argsForLocation
+            return argsForLocation(asking=askForLocation) + argsForPlatform(supportedUrl=url) + argsForInputFormat(defaultUsecase=usecase)
 
         from script import whileInputUrl
         from subprocess import call
