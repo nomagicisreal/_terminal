@@ -24,7 +24,7 @@ informationOf = lambda fileName: subprocess.run(
 
 thumbnailExtract = lambda source, format: subprocess.call(commandFor(source) + [
     '-an', '-c:v', 'copy',
-    f'{osPathSplitext(source)[0]}.{format}'
+    f'{os.path.splitext(source)[0]}.{format}'
 ]) # ffmpeg -i in.mp3 -an -c:v copy image.jpg
 
 # def thumbnailExtractThenAttatch(source: str, destination: str, format: str):
@@ -78,13 +78,13 @@ def transformAll(extIn: str, extOut: str, removeTransformed: bool):
     transform = _subprocessCallThenDelete if removeTransformed else call
 
     def transforming(fileName: str):
-        names = osPathSplitext(fileName)
+        names = os.path.splitext(fileName)
         if names[1][1:] == extIn:
             print(fileName)
             transform(commandFor(fileName) + [f'{names[0]}.{extOut}'])
     
     from script import foreachFiles
-    foreachFiles(transforming)
+    foreachFiles(transforming, includeSub=True)
 
 
 # 
@@ -100,7 +100,7 @@ def readyToSummarize(extension: str):
         extension = extension if extension else 'mp3'
 
     from script import whileEnsureFileLocation
-    whileEnsureFileLocation
+    whileEnsureFileLocation()
 
     summarizeDurations(extension)
     
@@ -130,7 +130,7 @@ def summarizeDurations(extension: str):
             )
 
     from script import foreachFiles
-    foreachFiles(consuming)
+    foreachFiles(consuming, includeSub=True)
     
     if count == 0:
         print(f'there is no {extension} in {os.getcwd()}')

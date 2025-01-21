@@ -10,8 +10,6 @@ import os
 # 
 osPathRealParent = lambda name: path.dirname(path.realpath(name))
 osPathRealSibling = lambda one, another: path.join(osPathRealParent(one), another)
-osPathBasename = lambda name: path.basename(name)
-osPathSplitext = lambda name: path.splitext(name)
 osPathName = lambda name: path.splitext(name)[0]
 osPathExtension = lambda name: path.splitext(name)[1][1:]
 
@@ -26,30 +24,35 @@ cwdFiles = lambda : cwdChildren()[1]
 #
 # 
 # 
-def foreachFiles(consume, includeSub: bool = True):
-    children = cwdChildren()
+def foreachFiles(consume, parent: str = '', includeSub: bool = False):
+    children: str
+    if not parent:
+        children = cwdChildren()
+    else:
+        cwd = os.getcwd()
+        os.chdir(parent)
+        children = cwdChildren()
+        os.chdir(cwd)
 
-    print(f'calculating for location ...')
-    [consume(child) for child in children[2]]
+    print(f'iterating on {os.getcwd()} ...')
+    [consume(path.join(parent, child)) for child in children[2]]
     
     if not includeSub:
         return
-
-    def nesting(subDirs: list, parent: str = ''):
+    def nesting(subDirs: list, p: str = ''):
         for subDir in subDirs:
             os.chdir(subDir)
             children = cwdChildren()
-            p = path.join(parent, subDir)
+            p = path.join(p, subDir)
 
             if children[1]:
                 nesting(children[1], p)
 
             if children[2]:
                 print(f'calculating for /{p} ...')
-                [consume(child) for child in children[2]]
+                [consume(path.join(parent, p, child)) for child in children[2]]
             
             os.chdir('..')
-    
     nesting(children[1])
 
 def chooseDirectoryOn(location: str) -> bool: # return true when choosen
@@ -104,7 +107,7 @@ def whileInputValidOption(options: dict) -> list:
         except Exception as e:  errorMessage = e
         print(errorMessage)
     
-def whileEnsureFileLocation():
+def whileEnsureCwd():
     while True:
         destination = input(f'location (default: {os.getcwd()}): ')
 

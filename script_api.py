@@ -36,12 +36,12 @@ def argsForCompilingEnvironment(extension: str) -> str:
 # 
 # 
 # 
-usecaseDowloadVideoOrAudio = 'download 1 video|audio'
-usecaseDowloadMp3 = 'download 1 mp3'
-usecaseDowloadMp4 = 'download 1 mp4'
-usecaseDowloadMultipleMp3 = 'download multiple mp3'
-usecaseDowloadMultipleMp3OnCwd = 'download multiple mp3 on current working directory'
-usecaseTransformVideoOrAudio = 'transform format of video|audio'
+usecaseDowloadVideoOrAudio = 'download video|audio'
+usecaseDowloadMp3 = 'download mp3'
+usecaseDowloadMp4 = 'download mp4'
+usecaseDowloadMultipleMp3 = 'download mp3 times'
+usecaseDowloadMultipleMp3OnCwd = 'download mp3 times on current working directory'
+usecaseTransformVideoOrAudio = 'transform video|audio format'
 usecaseGetTotalDurationOfVideoOrAudio = 'get duration forall video|audio'
 usecaseGetTotalDurationOfMp3 = 'get duration forall mp3'
 
