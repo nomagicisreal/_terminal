@@ -14,7 +14,7 @@ def decideSubprocess(option: str):
     if option == usecaseGetTotalDurationOfVideoOrAudio: return readyToSummarize()
     if option == usecaseGetTotalDurationOfMp3: return readyToSummarize('mp3')
     
-    from script import raiseUnimplementUsecase
+    from script_os import raiseUnimplementUsecase
     from script_ffmpeg import argEnvironment
     raiseUnimplementUsecase(argEnvironment, option)
 

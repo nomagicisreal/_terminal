@@ -1,6 +1,6 @@
 import subprocess
 import os
-from script import osPathExtension, osPathSplitext
+from script_re import substringFromDot, substringToDot
 
 # 
 # 
@@ -34,7 +34,7 @@ thumbnailExtract = lambda source, format: subprocess.call(commandFor(source) + [
     #     [
     #     argEnvironment,
     #     argInput,
-    #     f'{osPathSplitext(source)[0]}.{format}',
+    #     f'{substringToDot(source)}.{format}',
     #     # '-map', '0:0',
     #     # '-map', '1:0',
     #     '-c', 'copy',
@@ -55,10 +55,10 @@ thumbnailExtract = lambda source, format: subprocess.call(commandFor(source) + [
 # 
 def readyToTransform(forall: bool = True):
     if not forall:
-        from script import raiseUnimplementUsecase
+        from script_os import raiseUnimplementUsecase
         raiseUnimplementUsecase(argEnvironment, 'transform partial file')
     
-    from script import whileInputYorN
+    from script_os import whileInputYorN
     print('ready to transform all files ...')
     inputFormat = input('input format (default: mp4): ')
     outputFormat = input('output format (default: mov) forall: ')
@@ -83,7 +83,7 @@ def transformAll(extIn: str, extOut: str, removeTransformed: bool):
             print(fileName)
             transform(commandFor(fileName) + [f'{names[0]}.{extOut}'])
     
-    from script import foreachFiles
+    from script_os import foreachFiles
     foreachFiles(transforming, includeSub=True)
 
 
@@ -99,7 +99,7 @@ def readyToSummarize(extension: str):
         extension = input('summarize the duration of file type (default: mp3):')
         extension = extension if extension else 'mp3'
 
-    from script import whileEnsureFileLocation
+    from script_os import whileEnsureFileLocation
     whileEnsureFileLocation()
 
     summarizeDurations(extension)
@@ -114,7 +114,7 @@ def summarizeDurations(extension: str):
     count = 0
 
     def consuming(fileName: str):
-        if osPathExtension(fileName) == extension:
+        if substringFromDot(fileName) == extension:
             #
             # 1. get file information by ffmpeg, finding duration by regex (ffmpeg -i file.mp3 2>&1 | grep -oE "[0-9]{1}:[0-9]{2}:[0-9]{2}")
             # 2. adding duration string as datetime
@@ -129,7 +129,7 @@ def summarizeDurations(extension: str):
                 seconds=duration.second,
             )
 
-    from script import foreachFiles
+    from script_os import foreachFiles
     foreachFiles(consuming, includeSub=True)
     
     if count == 0:

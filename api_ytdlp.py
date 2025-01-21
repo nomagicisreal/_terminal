@@ -27,7 +27,7 @@ def decideSubprocess(usecase: str):
             from script_ytdlp import argsForPlatform, argsForInputFormat, argsForLocation
             return argsForLocation(asking=askForLocation) + argsForPlatform(supportedUrl=url) + argsForInputFormat(defaultUsecase=usecase)
 
-        from script import whileInputUrl
+        from script_input import whileInputUrl
         from subprocess import call
 
         if usecase in supportedUsecasesForLoop:
@@ -55,7 +55,7 @@ def decideSubprocess(usecase: str):
         )
         return
 
-    from script import raiseUnimplementUsecase
+    from script_os import raiseUnimplementUsecase
     raiseUnimplementUsecase(argEnvironment, usecase)
     
 

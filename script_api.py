@@ -1,28 +1,31 @@
 # 
 # 
 # 
-# functions
+# function
 # 
 # 
 # 
-
 def main():
     from subprocess import call
     call(argsForCompiling())
     print('\n')
 
 def argsForCompiling() -> list:
-    from script import whileInputValidOption, osPathExtension, osPathRealSibling
+    from script_input import whileInputValidOption
+    from script_os import osSibling
 
     scriptAndUsecase = whileInputValidOption(availableUsecases)
     scriptName: str = scriptAndUsecase[0]
     return [
-        argsForCompilingEnvironment(osPathExtension(scriptName)),
-        osPathRealSibling(__file__, scriptName),
+        argsForCompiler(scriptName),
+        osSibling(scriptName),
         scriptAndUsecase[1],
     ]
 
-def argsForCompilingEnvironment(extension: str) -> str:
+def argsForCompiler(basename: str) -> str:
+    from script_re import substringFromDot
+    extension = substringFromDot(basename)
+
     if extension == 'py': return 'python3'
     # if extension == 'R':  return 'Rscript'
     

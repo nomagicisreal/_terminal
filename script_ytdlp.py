@@ -1,4 +1,4 @@
-from script import raiseUnimplementUsecase, whileEnsureCwd
+from script_os import raiseUnimplementUsecase, ensuringCwd
 
 # 
 # 
@@ -37,7 +37,7 @@ def argsForPlatform(supportedUrl: str) -> list:
         return [argEmbedThumbnail]
 
 def argsForLocation(asking: bool) -> list:
-    if asking: whileEnsureCwd()
+    if asking: ensuringCwd()
     return [argOutput, argOutputFileNameFormat]
 
 # 
