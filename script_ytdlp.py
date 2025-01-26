@@ -1,4 +1,4 @@
-from script_os import raiseUnimplementUsecase, ensuringCwd
+from subprocess import call
 
 # 
 # 
@@ -8,72 +8,91 @@ from script_os import raiseUnimplementUsecase, ensuringCwd
 # 
 # 
 argEnvironment = 'yt-dlp'
-argEmbedThumbnail: str = '--embed-thumbnail'
-argCookiesFromBrowser: str = '--cookies-from-browser'
-argYesPlaylist: str = '--yes-playlist'
+argEmbedThumbnail = '--embed-thumbnail'
+argCookiesFromBrowser = '--cookies-from-browser'
+argBrowserChrome = 'chrome'
+argYesPlaylist = '--yes-playlist'
+argOutput = '-o'
+argOutputFileNameFormat = f'%(title)s'
+argExtractAudio = '-x'
+argFormatAudio = '--audio-format'
+argFormatVideo = '-f'
+mp4 = 'mp4'
+mov = 'mov'
+m4a = 'm4a'
+mp3 = 'mp3'
 
-argOutput: str = '-o'
-argOutputFileNameFormat: str = f'%(title)s'
-
-# see also https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#format-selection-examples
-argExtractAudio: str = '-x'
-argFormatAudio: str = '--audio-format'
-argFormatVideo: str = '-f'
-argSupportedAudioFormat = ['best', 'aac', 'alac', 'flac', 'm4a', 'mp3', 'opus', 'vorbis', 'wav'] # see also https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#post-processing-options
-argSupportedVideoFormat = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'] # see also https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#video-format-options
-
-# 
-# 
-# thumbnail
-# 
-#   - instagram: x
-#   - youtube: o
-# 
-def argsForPlatform(supportedUrl: str) -> list:
-    if 'instagram' in supportedUrl:
-        # return []
-        return [argCookiesFromBrowser, 'chrome']
-    else:
-        return [argEmbedThumbnail]
-
-def argsForLocation(asking: bool) -> list:
-    if asking: ensuringCwd()
-    return [argOutput, argOutputFileNameFormat]
+# respectively according to https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#sorting-formats:~:text=Video%20Extension, https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#sorting-formats:~:text=Audio%20Extension
+generalVideoExtension = [mp4, mov, 'webm']
+generalAudioExtension = [m4a, 'aac', mp3, 'ogg', 'opus', 'webm']
 
 # 
 # 
-# 
-# args format
-# 
+# lambdas
 # 
 # 
-def argsForInputFormat(defaultUsecase: str) -> str:
-    format = checkInputFormatFrom(defaultUsecase)
-    while True:
-        if format in argSupportedAudioFormat:
-            return [argExtractAudio, argFormatAudio, format]
-        elif format in argSupportedVideoFormat:
-            if format == 'mp4':
-                format = f'bv*[ext={format}]+ba[ext=m4a]'
-            else:
-                raise Exception('currently only support mp4 with my implementation')
-            return [argFormatVideo, format]
-        
-        print(
-            f"unknown command: {format}\n"
-            "USAGES:\n"
-            f"\t1. press enter to ensure the default format\n"
-            f"\t2. input an audio format of {argSupportedAudioFormat}\n"
-            f"\t3. input a video format of {argSupportedVideoFormat}\n"
-        )
+downloading = lambda url, format: call([
+    argEnvironment,
+    argOutput, argOutputFileNameFormat,
+    *argsPlatform(supportedUrl=url),
+    *argsInputFormat(format=format),
+    url
+])
 
-def checkInputFormatFrom(defaultUsecase: str):
-    from script_api import usecaseDowloadVideoOrAudio, usecaseDowloadMp3, usecaseDowloadMp4
-    from script_api import usecaseDowloadMultipleMp3, usecaseDowloadMultipleMp3OnCwd
-    if defaultUsecase == usecaseDowloadVideoOrAudio: return input('format (default: mp3): ')
-    elif defaultUsecase == usecaseDowloadMp3: return 'mp3'
-    elif defaultUsecase == usecaseDowloadMp4: return 'mp4'
-    elif defaultUsecase == usecaseDowloadMultipleMp3: return 'mp3'
-    elif defaultUsecase == usecaseDowloadMultipleMp3OnCwd: return 'mp3'
+# 
+# 
+# 
+# 
+# 
+# functions
+# 
+# 
+# 
+# 
+# 
+def argsPlatform(supportedUrl: str) -> list:
+    # 
+    # instagram needs to login before downloading
+    # youtube has thumbnail, "youtu.be" occurs when copy url by sharing function
+    # 
+    if 'instagram' in supportedUrl: return [argCookiesFromBrowser, 'chrome']
+    if 'youtube' in supportedUrl: return [argEmbedThumbnail]
+    if 'youtu.be' in supportedUrl: return [argEmbedThumbnail]
     
-    raiseUnimplementUsecase(argEnvironment, defaultUsecase)
+    raise Exception(f'unsupported platform: {supportedUrl}')
+
+def argsInputFormat(format: str) -> str:
+    if format in generalVideoExtension:
+        return [argFormatVideo, f'bv*[ext={format}]+ba[ext={m4a}]']
+    if format in generalAudioExtension:
+        return [argExtractAudio, argFormatAudio, format]
+    
+    raise Exception(f'unknown format: {format}')
+
+
+# 
+# 
+# 
+# functions --- readyTo...
+# 
+# 
+# 
+import script_input
+def readyToDownload(format: str):
+    format = script_input.inputOrDefaultIfEmpty('format', mp4, format)
+    script_input.ensureLocation()
+    downloading(script_input.ensureValidUrl(), format)
+
+def readyToDownloadMany(format: str, askingLocationEverytime: bool):
+    format = script_input.inputOrDefaultIfEmpty('format', mp4, format)
+    if askingLocationEverytime:
+        while True:
+            script_input.ensureLocation()
+            downloading(script_input.ensureValidUrl(), format)
+            if not script_input.ensureYorN('continue downloading?', True): return
+    
+    script_input.ensureLocation()
+    while True:
+        downloading(script_input.ensureValidUrl(), format)
+        if not script_input.ensureYorN('continue downloading?', True): return
+    

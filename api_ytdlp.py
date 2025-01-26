@@ -2,62 +2,57 @@
 # 
 # -----------------------------------------------
 # api_ytdlp.py helps to download video by terminal.
-# It's an implementation for https://github.com/yt-dlp/yt-dlp 
+# Implementation for https://github.com/yt-dlp/yt-dlp 
 # Supported sites: https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md 
 # -----------------------------------------------
 # 
 # 
 
-from script_api import usecaseDowloadMp3, usecaseDowloadMp4, usecaseDowloadVideoOrAudio
-from script_api import usecaseDowloadMultipleMp3, usecaseDowloadMultipleMp3OnCwd
-supportedUsecases = [
-    usecaseDowloadMp3, usecaseDowloadMp4, usecaseDowloadVideoOrAudio,
-    usecaseDowloadMultipleMp3, usecaseDowloadMultipleMp3OnCwd,
-]
+# 
+# 
+# constants
+# 
+# 
+apiName = 'api_ytdlp.py'
+usecaseDowloadStream = 'download stream'
+usecaseDowloadMp3 = 'download mp3'
+usecaseDowloadMp4 = 'download mp4'
+usecaseDowloadManyMp3 = 'download many mp3'
+usecaseDowloadManyMp3OnDirectory = 'download many mp3 in directory'
+usecases = (
+    usecaseDowloadStream, usecaseDowloadMp3, usecaseDowloadMp4,
+    usecaseDowloadManyMp3, usecaseDowloadManyMp3OnDirectory,
+)
+supportedUsecasesLoop = (
+    usecaseDowloadManyMp3, usecaseDowloadManyMp3OnDirectory,
+)
 
-supportedUsecasesForLoop = [
-    usecaseDowloadMultipleMp3, usecaseDowloadMultipleMp3OnCwd,
-]
+# 
+# 
+# functions
+# 
+# 
+def processing(option: str):
+    if option not in usecases:
+        from script_os import raiseInvalidUsecase
+        raiseInvalidUsecase(apiName, option, usecases)
 
-def decideSubprocess(usecase: str):
-    from script_ytdlp import argEnvironment
-    if usecase in supportedUsecases:
+    from script_ytdlp import mp3, mp4
+    from script_ytdlp import readyToDownload, readyToDownloadMany
 
-        def extendingArgs(askForLocation: bool, url: str, usecase: str) -> list: 
-            from script_ytdlp import argsForPlatform, argsForInputFormat, argsForLocation
-            return argsForLocation(asking=askForLocation) + argsForPlatform(supportedUrl=url) + argsForInputFormat(defaultUsecase=usecase)
-
-        from script_input import whileInputUrl
-        from subprocess import call
-
-        if usecase in supportedUsecasesForLoop:
-            asking = False if usecase == usecaseDowloadMultipleMp3OnCwd else True
-            while True:
-                print("enter 'q' to exist loop")
-                url = whileInputUrl()
-                if url == 'q': return
-                call(
-                    [argEnvironment] + extendingArgs(
-                        askForLocation=asking,
-                        url=url,
-                        usecase=usecase,
-                    ) + [url]
-                )
-                print('\n')
-
-        url = whileInputUrl()
-        call(
-            [argEnvironment] + extendingArgs(
-                askForLocation=True,
-                url=url,
-                usecase=usecase,
-            ) + [url]
+    def formatOf(usecase: str):
+        if usecase == usecaseDowloadStream: return ''
+        if usecase == usecaseDowloadMp3: return mp3
+        if usecase == usecaseDowloadMp4: return mp4
+        if usecase == usecaseDowloadManyMp3: return mp3
+        if usecase == usecaseDowloadManyMp3OnDirectory: return mp3
+        raise Exception(f'unknown format for usecase: {usecase}')
+    
+    if option in supportedUsecasesLoop:
+        readyToDownloadMany(
+            formatOf(option),
+            False if option == usecaseDowloadManyMp3OnDirectory else True
         )
         return
 
-    from script_os import raiseUnimplementUsecase
-    raiseUnimplementUsecase(argEnvironment, usecase)
-    
-
-from sys import argv
-decideSubprocess(argv[1])
+    readyToDownload(formatOf(option))

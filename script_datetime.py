@@ -1,22 +1,13 @@
-from datetime import timedelta, datetime
+from datetime import timedelta
 from re import search
 
 # 
 # 
-# 
-findingTimeText = lambda source: search("[0-9]{1}:[0-9]{2}:[0-9]{2}", source).group()
-findingTime = lambda source: datetime.strptime(findingTimeText(source), '%H:%M:%S').time()
-
+# lambdas
 # 
 # 
-# 
-# 
-def addingTimes(times: list, format: str = '%H:%M:%S') -> str:
-    delta = timedelta()
-    for time in times:
-        d = datetime.strptime(time, format).time()
-        delta += timedelta(hours=d.hour, minutes=d.minute, seconds=d.second)
-    return delta
-
-# myTimes = ['00:01:11', '01:02:01', '03:00:52']
-# print(addingTimes(myTimes))
+findingTimeText = lambda source: search(r"[0-9]{1,2}:[0-9]{2}:[0-9]{2}", source).group()
+timedeltaFromSeconds = lambda seconds: timedelta(seconds=seconds)
+formatHourMinuteSecond = lambda seporator: f'%H{seporator}%M{seporator}%S'
+formatYearDate = lambda seporator: f'%Y{seporator}%m{seporator}%d'
+formatYearToSecond = lambda sDate, sTime: f'%Y{sDate}%m{sDate}%d %H{sTime}%M{sTime}%S'
