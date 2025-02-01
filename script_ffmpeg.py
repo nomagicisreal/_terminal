@@ -1,25 +1,38 @@
-from subprocess import call
-from script_os import pathSplittext
+# 
+# 
+# 
+# -----------------------------------------------
+# ffmpeg helps the operations on audio & vedio.
+# It's an implementation for https://ffmpeg.org/ 
+# -----------------------------------------------
+# 
+# 
+# 
 
 # 
 # 
 # constaints
 # 
 # 
-argEnvironment = 'ffmpeg'
-argInput = '-i'
-argAudioNone = '-an'
-argMapToOutput = '-map'
-argOutputFromFirst = '0:0'
-argOutputFromSecond = '1:0'
-argCodec = '-c'
-argCodecCopy = 'copy'
-argCompabilityId3v2_version = '-id3v2_version'
-argMetadata = '-metadata:s:v'
-argMetadataalbumArtTitle = 'title=Album Cover'
-argMetadataalbumArtComment = 'comment=Cover (front)'
-argSeek = '-ss'
-argVideoFrames = '-vframes'
+_aEnvironment = 'ffmpeg'
+_aInput = '-i'
+_aAudioNone = '-an'
+_aMap = '-map'
+_aMap0 = '0' # map all streams from first input
+_aMap1 = '1' # map all streams from second input
+_aMap0v0 = '0:v:0' # map from first input first video stream 
+_aMap0v1 = '0:v:1' # map from first input second video stream (usually embeded thumbnail)
+_aMap0a = '0:a' # map all audio
+_aCodec = '-c'
+_aCodecCopy = 'copy'
+_aCompabilityAudioThumbnail = '-id3v2_version'
+_aCompabilityVideoThumbnail = '-disposition:v:1'
+_aVideoFrames = '-vframes'
+# _aVideoFilter = '-vf'
+_argsMetadataAlbumArt = [
+    '-metadata:s:v', 'title=Album Cover',
+    '-metadata:s:v', 'comment=Cover (front)'
+]
 
 # 
 # 
@@ -27,57 +40,71 @@ argVideoFrames = '-vframes'
 # lambdas
 # 
 # 
+import subprocess
+from utils import splitFilename
+_coverName = lambda source, ext: f'{splitFilename(source)[0]} (cover).{ext}'
 
-albumArtName = lambda source, format: f'{pathSplittext(source)[0]} (cover).{format}'
-
-# ffmpeg -i input.mp3 -an -c copy cover.jpg
-albumArtRetrieve = lambda source, name: call([
-    argEnvironment,
-    argInput, source,
-    argAudioNone,
-    argCodec, argCodecCopy,
-    name,
-])
-
-# ffmpeg -i input.mp3 -i cover.jpg -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" output.mp3
-albumArtStreamExport = lambda cover, stream, output: call([
-    argEnvironment,
-    argInput, stream,
-    argInput, cover,
-    argMapToOutput, argOutputFromFirst,
-    argMapToOutput, argOutputFromSecond,
-    argCodec, argCodecCopy,
-    argCompabilityId3v2_version, '3',
-    argMetadata, argMetadataalbumArtTitle,
-    argMetadata, argMetadataalbumArtComment,
+# ffmpeg -i test.mp3 -an cover.png
+_frameFromAudio = lambda source, output: subprocess.call([
+    _aEnvironment, _aInput, source,
+    _aAudioNone,
+    _aCodec, _aCodecCopy,
     output,
 ])
 
-# ffmpeg -i input.mp4 -ss 00:00:10 -vframes 1 output.jpg
-# frameOnTimedelta = lambda source, delta, format: call([
-#     argEnvironment,
-#     argInput, source,
-#     argSeek, str(delta),
-#     argVideoFrames, '1',
-#     f'{source} frame{delta.seconds}.{format}'
+# ffmpeg -i test.mp3 -map 0 -vframes 1 cover.png
+_frameFromVideo = lambda source, output, mapping: subprocess.call([
+    _aEnvironment, _aInput, source,
+    _aMap, mapping,
+    _aCodec, _aCodecCopy,
+    _aVideoFrames, '1',
+    output,
+])
+
+# ffmpeg -i test.mp3 -i cover.png -map 0:a -map 1 -c copy -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" output.mp3
+_framedAudioExport = lambda cover, source, output: subprocess.call([
+    _aEnvironment, _aInput, source, _aInput, cover,
+    _aMap, _aMap0, _aMap, _aMap1,
+    _aCodec, _aCodecCopy,
+    _aCompabilityAudioThumbnail, '3',
+    *_argsMetadataAlbumArt,
+    output,
+])
+
+# ffmpeg -i test.mp4 -i cover.png -map 0:v:0 -map 0:a -map 1 -c copy -disposition:v:1 attached_pic output.mp4
+_framedVideoExport = lambda cover, source, output: subprocess.call([
+    _aEnvironment, _aInput, source, _aInput, cover,
+    _aMap, _aMap0v0, _aMap, _aMap0a, _aMap, _aMap1,
+    _aCodec, _aCodecCopy,
+    _aCompabilityVideoThumbnail, 'attached_pic',
+    output,
+])
+
+# ffmpeg -i test.mp4 -ss 00:00:00 -vframes 1 output.jpg
+# _aSeek = '-ss'
+# frameSeekOnTimedelta = lambda source, delta, ext: subprocess.call([
+#     _aEnvironment,
+#     _aInput, source,
+#     _aSeek, str(delta),
+#     _aVideoFrames, '1',
+#     f'{source} frame{delta.seconds}.{ext}'
 # ])
 
-# ffmpeg -i input.mp4 frame%03d.jpg
-# framesAll = lambda source, format: call([
-#     argEnvironment,
-#     argInput, source,
-#     f'frame%04d.{format}'
+# ffmpeg -i test.mp4 frame%03d.jpg
+# framesAll = lambda source, ext: subprocess.call([
+#     _aEnvironment,
+#     _aInput, source,
+#     f'frame%04d.{ext}'
 # ])
 
-# ffmpeg -i input.mp4 -vf fps=1 -t 5 output%03d.jpg
-# argVideoFilter = '-vf'
-# argTime = '-t'
-# framesTo = lambda source, format, fps, time: call([
-#     argEnvironment,
-#     argInput, source,
-#     argVideoFilter, f'fps={fps}',
-#     argTime, time,
-#     f'frame%04d.{format}'
+# ffmpeg -i test.mp4 -vf fps=1 -t 5 output%03d.jpg
+# _aTime = '-t'
+# framesTo = lambda source, ext, fps, time: subprocess.call([
+#     _aEnvironment,
+#     _aInput, source,
+#     _aVideoFilter, f'fps={fps}',
+#     _aTime, time,
+#     f'frame%04d.{ext}'
 # ])
 
 #
@@ -89,141 +116,94 @@ albumArtStreamExport = lambda cover, stream, output: call([
 # 
 # 
 # 
-def albumArtAttach(stream: str, cover: str):
-    s = f'covered| {stream}'
-    albumArtStreamExport(cover, stream, s)
-    from os import rename
-    rename(s, stream) # update original stream
+def thumbnailFrom(source: str, imageExt: str):
+    from utils import splitFilename, translateExtAudioOrVideo
+    from script_ffprobe import translateOnStreamCountAOrB
+    return translateExtAudioOrVideo(
+        splitFilename(source)[1][1:],
+        onAudio=lambda: _frameFromAudio(source, _coverName(source, imageExt)),
+        onVideo=lambda: translateOnStreamCountAOrB(
+            source=source, a=2, b=3,
+            onA=lambda: _frameFromVideo(source, _coverName(source, imageExt), _aMap0v0),
+            onB=lambda: _frameFromVideo(source, _coverName(source, imageExt), _aMap0v1)
+        )
+    )
 
-def albumArtCopy(source: str, destination: str):
-    cover = albumArtName(source, 'jpg')
-    albumArtRetrieve(source, cover)
-    albumArtAttach(destination, cover)
+def thumbnailAttach(source: str, cover: str, rejectReplace):
+    tempt = f'covered| {source}'
+    from utils import splitFilename, translateExtAudioOrVideo
+    from script_ffprobe import translateOnStreamCountAOrB
+    def askBefore(export):
+        if not rejectReplace('replace exist thumnail?'):
+            export(cover, source, tempt)
+    translateExtAudioOrVideo(
+        splitFilename(source)[1][1:],
+        onAudio=lambda: translateOnStreamCountAOrB(
+            source=source, a=1, b=2,
+            onA=lambda: _framedAudioExport(cover, source, tempt),
+            onB=lambda: askBefore(_framedAudioExport)
+        ),
+        onVideo=lambda: translateOnStreamCountAOrB(
+            source=source, a=2, b=3,
+            onA=lambda: _framedVideoExport(cover, source, tempt),
+            onB=lambda: askBefore(_framedVideoExport)
+        ),
+    )
+    from os import rename
+    rename(tempt, source) # update original stream
+
+def thumbnailCopyToAnother(source: str, target: str, askForReplace):
+    from constants import png
+    cover = _coverName(source, png)
+    thumbnailFrom(source, png)
+    thumbnailAttach(target, cover, askForReplace)
     from os import remove
     remove(cover)
 
 # 
 # 
 # 
-def transformFormat(source: str, extOut: str, removeTransformed: bool):
-    from script_os import pathSplittext
-    from script_subprocess import callThenRemoveArgs2
-    transform = callThenRemoveArgs2 if removeTransformed else call
-    transform([argEnvironment, argInput, source, f'{pathSplittext(source)[0]}.{extOut}'])
 
-def transformFormatAll(extIn: str, extOut: str, removeTransformed: bool):
-    from script_os import foreachFiles, pathSplittext
-    from script_subprocess import callThenRemoveArgs2
+def _callThenRemoveBy(sign):
+    def _callThenRemoveArg2(args: list):
+        subprocess.call(args)
+        subprocess.call(['rm', args[2]])
+    
+    def _callThenRemoveArg2IfSign(args: list):
+        from os.path import abspath
+        subprocess.call(args)
+        origin = args[2]
+        if not sign(f'sure to remove {abspath(origin)}?'): subprocess.call(['rm', origin])
+
+    return _callThenRemoveArg2IfSign if sign else _callThenRemoveArg2
+
+_conversionOf = lambda remove, sign: _callThenRemoveBy(sign) if remove else subprocess.call
+_convert = lambda source, output, transformer: transformer([
+    _aEnvironment,
+    _aInput, source, # TODO: convert mp4 to mov with thumbnail stream
+    output
+])
+
+def convert(source: str, ext: str, removeTransformed: bool):
+    from utils import splitFilename
+    name = splitFilename(source)
+    if name[1][1:] == ext: return
+    _convert(source, f'{name[0]}.{ext}', _conversionOf(removeTransformed, None))
+
+def convertAll(
+        extIn: str,
+        extOut: str,
+        removeTransformed: bool,
+        includeSubDir: bool,
+        sign,
+    ):
+    from utils import foreachFileNest, splitFilename
+    transformer = _conversionOf(removeTransformed, sign)
     def transforming(source: str):
-        transform = callThenRemoveArgs2 if removeTransformed else call
-        names = pathSplittext(source)
+        names = splitFilename(source)
         if names[1][1:] == extIn:
             output = f'{names[0]}.{extOut}'
             print(f'{source} -> {output}')
-            transform([argEnvironment, argInput, source, output])
-
-    foreachFiles(transforming, includeSub=True)
-
-# 
-# 
-# 
-def summarizeDurations(extension: str):
-    global seconds
-    global count
-    seconds = 0.0
-    count = 0
-
-    from script_ffprobe import durationOf
-    def consuming(source: str):
-        if pathSplittext(source)[1][1:] == extension:
-            global seconds
-            global count
-            count += 1
-            seconds += durationOf(source)
-
-    from script_os import foreachFiles, getCwd
-    foreachFiles(consuming, includeSub=True)
+            _convert(source, output, transformer)
     
-    if count == 0:
-        print(f'there is no {extension} in {getCwd()}')
-        return
-    
-    from script_datetime import timedeltaFromSeconds
-    print(
-        f'\n'
-        f'playing all {count} {extension} in {getCwd()}\n'
-        f"takes {timedeltaFromSeconds(int(seconds))}"
-    )
-
-
-
-# 
-# 
-# 
-# 
-# 
-# functions ---- readyTo...
-# 
-# 
-# 
-# 
-# 
-def _locating():
-    from script_input import ensureLocation
-    ensureLocation()
-
-def readyToTransformFormat():
-    _locating()
-
-    from script_input import ensureYorN, ensureValidFile, inputOrDefault
-    transformFormat(
-        ensureValidFile('source: '),
-        inputOrDefault('output format', 'mov'),
-        ensureYorN('remove transformed? '),
-    )
-
-def readyToTransformFormatAll():
-    _locating()
-
-    from script_input import ensureYorN, inputOrDefault
-    transformFormatAll(
-        inputOrDefault('input format', 'mp4'),
-        inputOrDefault('output format', 'mov'),
-        ensureYorN('remove transformed? '),
-    )
-
-def readyToSummarize(extension: str = ''):
-    _locating()
-
-    if not extension:
-        from script_input import inputOrDefault
-        extension = inputOrDefault('summarize the duration of stream type', 'mp3')
-    summarizeDurations(extension)
-
-# 
-# 
-# 
-from script_input import ensureValidFile
-def readyToRetrieveAlbumArt():
-    _locating()
-
-    from script_input import inputOrDefault
-    source = ensureValidFile('source: ')
-    albumArtRetrieve(
-        source,
-        albumArtName(source, inputOrDefault('format', 'jpg'))
-    )
-
-def readyToAttatchAlbumArt():
-    _locating()
-
-    stream = ensureValidFile('stream: ')
-    cover = ensureValidFile('album art: ')
-    albumArtAttach(stream, cover)
-
-def readyToCopyAlbumArtToAnother():
-    _locating()
-
-    source = ensureValidFile('source: ')
-    destination = ensureValidFile('destination: ')
-    albumArtCopy(source, destination)
+    foreachFileNest(includeSubDir)(transforming)

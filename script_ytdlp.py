@@ -1,4 +1,12 @@
-from subprocess import call
+# 
+# 
+# -----------------------------------------------
+# yt-dlp.py helps to download video by terminal.
+# Implementation for https://github.com/yt-dlp/yt-dlp 
+# Supported sites: https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md 
+# -----------------------------------------------
+# 
+# 
 
 # 
 # 
@@ -8,36 +16,43 @@ from subprocess import call
 # 
 # 
 argEnvironment = 'yt-dlp'
+argGetTitle = '--get-title'
 argEmbedThumbnail = '--embed-thumbnail'
 argCookiesFromBrowser = '--cookies-from-browser'
 argBrowserChrome = 'chrome'
 argYesPlaylist = '--yes-playlist'
-argOutput = '-o'
-argOutputFileNameFormat = f'%(title)s'
+argOutputFormat = '-o'
 argExtractAudio = '-x'
 argFormatAudio = '--audio-format'
 argFormatVideo = '-f'
-mp4 = 'mp4'
-mov = 'mov'
-m4a = 'm4a'
-mp3 = 'mp3'
 
-# respectively according to https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#sorting-formats:~:text=Video%20Extension, https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#sorting-formats:~:text=Audio%20Extension
-generalVideoExtension = [mp4, mov, 'webm']
-generalAudioExtension = [m4a, 'aac', mp3, 'ogg', 'opus', 'webm']
+# see available fields https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#output-template-examples:~:text=processing%20is%20complete.-,The%20available%20fields%20are
+formatTitle = f'%(title)s'
+formatId = f'%(id)s'
 
+# 
+# 
 # 
 # 
 # lambdas
 # 
 # 
-downloading = lambda url, format: call([
+# 
+# 
+
+import subprocess
+download = lambda url, ext, format = formatTitle, check = False: subprocess.run([
     argEnvironment,
-    argOutput, argOutputFileNameFormat,
-    *argsPlatform(supportedUrl=url),
-    *argsInputFormat(format=format),
+    argOutputFormat, format,
+    *argsPlatform(url),
+    *argsExtension(ext),
     url
-])
+], check=check)
+
+titleOf = lambda url: subprocess.run(
+    [argEnvironment, argGetTitle, url],
+    capture_output=True
+).stdout.decode()[0:-1] # discard \n
 
 # 
 # 
@@ -50,49 +65,36 @@ downloading = lambda url, format: call([
 # 
 # 
 # 
-def argsPlatform(supportedUrl: str) -> list:
+def argsPlatform(url: str) -> list:
     # 
     # instagram needs to login before downloading
     # youtube has thumbnail, "youtu.be" occurs when copy url by sharing function
     # 
-    if 'instagram' in supportedUrl: return [argCookiesFromBrowser, 'chrome']
-    if 'youtube' in supportedUrl: return [argEmbedThumbnail]
-    if 'youtu.be' in supportedUrl: return [argEmbedThumbnail]
+    if 'instagram' in url: return [argCookiesFromBrowser, 'chrome']
+    if 'youtube' in url: return [argEmbedThumbnail]
+    if 'youtu.be' in url: return [argEmbedThumbnail]
     
-    raise Exception(f'unsupported platform: {supportedUrl}')
+    raise Exception(f'unsupported platform: {url}')
 
-def argsInputFormat(format: str) -> str:
-    if format in generalVideoExtension:
-        return [argFormatVideo, f'bv*[ext={format}]+ba[ext={m4a}]']
-    if format in generalAudioExtension:
-        return [argExtractAudio, argFormatAudio, format]
+def argsExtension(ext: str) -> str:
+    from constants import mp4, generalAudioExts, generalVideoExts
+    if ext in generalAudioExts:
+        return [argExtractAudio, argFormatAudio, ext]
+    if ext in generalVideoExts:
+        if ext == mp4: return [argFormatVideo , f'bv*[ext=mp4]+ba[ext=m4a]/b']
+        return [argFormatVideo, f'bv*[ext={ext}]+ba']
     
-    raise Exception(f'unknown format: {format}')
+    raise Exception(f'unknown format: {ext}')
 
-
 # 
 # 
 # 
-# functions --- readyTo...
 # 
-# 
-# 
-import script_input
-def readyToDownload(format: str):
-    format = script_input.inputOrDefaultIfEmpty('format', mp4, format)
-    script_input.ensureLocation()
-    downloading(script_input.ensureValidUrl(), format)
-
-def readyToDownloadMany(format: str, askingLocationEverytime: bool):
-    format = script_input.inputOrDefaultIfEmpty('format', mp4, format)
-    if askingLocationEverytime:
-        while True:
-            script_input.ensureLocation()
-            downloading(script_input.ensureValidUrl(), format)
-            if not script_input.ensureYorN('continue downloading?', True): return
-    
-    script_input.ensureLocation()
-    while True:
-        downloading(script_input.ensureValidUrl(), format)
-        if not script_input.ensureYorN('continue downloading?', True): return
-    
+def downloadTry(url: str, extensions: list, format: str = formatTitle):
+    for ext in extensions:
+        try:
+            download(url, ext, format, check=True)
+            return ext
+        except subprocess.CalledProcessError:
+            continue
+    return ''
