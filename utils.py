@@ -38,6 +38,10 @@ findingTimeText = lambda source: re.search(r"[0-9]{1,2}:[0-9]{2}:[0-9]{2}", sour
 # 
 # 
 # 
+def renameIfExist(filename: str, output: str):
+    if filename in getCwdFiles():
+        return os.rename(filename, output)
+
 def extensionsForFilename(name: str):
     extensions = []
     for file in getCwdFiles():

@@ -19,7 +19,8 @@ uConvertAllStream = 'convert all streams in directory (sign to remove origin)'
 uConvertAllStreamUpdate = 'convert all streams in directory (remove origin directly)'
 uShowTotalDurationOfStreams = 'show total duration of all stream in directory'
 uShowTotalDurationOfMp3s = 'show total duration of all mp3 in directory'
-uThumbnailRetrieve = 'retrieve thumbnail from stream'
+uThumbnailExport = 'export thumbnail from stream'
+uThumbnailRemove = 'remove thumbnail of stream'
 uThumbnailAttatch = 'attatch thumbnail to stream'
 uThumbnailCopyToAnother = 'copy thumbnail from stream to stream'
 
@@ -43,7 +44,8 @@ usecasesShow = (
 )
 
 usecasesAlbumnArt = (
-    uThumbnailRetrieve, uThumbnailAttatch, uThumbnailCopyToAnother
+    uThumbnailExport, uThumbnailRemove,
+    uThumbnailAttatch, uThumbnailCopyToAnother
 )
 
 # 
@@ -70,7 +72,6 @@ def reserveDownload(u: str):
     if u == uDowloadManyMp3OnDirectory: return counterDownloadMany(mp3, False)
     if u == uDowloadMovOrMp4ToMov: return counterDownloadAOrBToA(mov, mp4)
 
-
 def reserveConvert(u: str):
     from counter import counterConvertStream, counterConvertStreamAll
     if u == uConvertStream: return counterConvertStream()
@@ -84,8 +85,9 @@ def reserveShow(u: str):
     if u == uShowTotalDurationOfMp3s: return counterSumDuration(mp3)
 
 def reserveAlbumArt(u: str):
-    from counter import counterThumbnailRetrieve, counterThumbnailAttatch, counterThumbnailCopyToAnother
-    if u == uThumbnailRetrieve: return counterThumbnailRetrieve()
+    from counter import counterThumbnailRemove, counterThumbnailExport, counterThumbnailAttatch, counterThumbnailCopyToAnother
+    if u == uThumbnailExport: return counterThumbnailExport()
+    if u == uThumbnailRemove: return counterThumbnailRemove()
     if u == uThumbnailAttatch: return counterThumbnailAttatch()
     if u == uThumbnailCopyToAnother: return counterThumbnailCopyToAnother()
 

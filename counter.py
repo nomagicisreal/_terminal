@@ -151,13 +151,20 @@ def counterConvertStreamAll(extIn: str = '', extOut: str = '', signIfRemove: boo
         sign=whileInputReject if signIfRemove else None
     )
 
-def counterThumbnailRetrieve():
-    from script_ffmpeg import thumbnailFrom
+def counterThumbnailExport():
+    from script_ffmpeg import thumbnailExport
     from constants import png
     whileEnsureLocation()
-    thumbnailFrom(
+    thumbnailExport(
         whileInputValidFile('source: '),
         inputOrDefault('thumbnail extension', png)
+    )
+
+def counterThumbnailRemove():
+    from script_ffmpeg import thumbnailRemove
+    whileEnsureLocation()
+    thumbnailRemove(
+        whileInputValidFile('source: ')
     )
 
 def counterThumbnailAttatch():

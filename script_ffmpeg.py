@@ -52,6 +52,22 @@ _frameFromAudio = lambda source, output: subprocess.call([
     output,
 ])
 
+# ffmpeg -i test.mp3 -map 0:a -c copy output.mp3
+_audioExport = lambda source, output: subprocess.call([
+    _aEnvironment, _aInput, source,
+    _aMap, _aMap0a,
+    _aCodec, _aCodecCopy,
+    output,
+])
+
+# ffmpeg -i test.mp4 -map 0:v:0 -map 0:a -c copy output.mp4
+_videoExport = lambda source, output: subprocess.call([
+    _aEnvironment, _aInput, source,
+    _aMap, _aMap0v0, _aMap, _aMap0a,
+    _aCodec, _aCodecCopy,
+    output,
+])
+
 # ffmpeg -i test.mp3 -map 0 -vframes 1 cover.png
 _frameFromVideo = lambda source, output, mapping: subprocess.call([
     _aEnvironment, _aInput, source,
@@ -116,7 +132,7 @@ _framedVideoExport = lambda cover, source, output: subprocess.call([
 # 
 # 
 # 
-def thumbnailFrom(source: str, imageExt: str):
+def thumbnailExport(source: str, imageExt: str):
     from utils import splitFilename, translateExtAudioOrVideo
     from script_ffprobe import translateOnStreamCountAOrB
     return translateExtAudioOrVideo(
@@ -128,6 +144,26 @@ def thumbnailFrom(source: str, imageExt: str):
             onB=lambda: _frameFromVideo(source, _coverName(source, imageExt), _aMap0v1)
         )
     )
+
+def thumbnailRemove(source: str):
+    tempt = f'no covered| {source}'
+    from utils import splitFilename, translateExtAudioOrVideo
+    from script_ffprobe import translateOnStreamCountAOrB
+    translateExtAudioOrVideo(
+        splitFilename(source)[1][1:],
+        onAudio=lambda: translateOnStreamCountAOrB(
+            source=source, a=1, b=2,
+            onA=lambda: None,
+            onB=lambda: _audioExport(source, tempt)
+        ),
+        onVideo=lambda: translateOnStreamCountAOrB(
+            source=source, a=2, b=3,
+            onA=lambda: None,
+            onB=lambda: _videoExport(source, tempt),
+        ),
+    )
+    from utils import renameIfExist
+    renameIfExist(tempt, source) # update original stream
 
 def thumbnailAttach(source: str, cover: str, rejectReplace):
     tempt = f'covered| {source}'
@@ -155,7 +191,7 @@ def thumbnailAttach(source: str, cover: str, rejectReplace):
 def thumbnailCopyToAnother(source: str, target: str, askForReplace):
     from constants import png
     cover = _coverName(source, png)
-    thumbnailFrom(source, png)
+    thumbnailExport(source, png)
     thumbnailAttach(target, cover, askForReplace)
     from os import remove
     remove(cover)
