@@ -27,7 +27,7 @@ _aCodec = '-c'
 _aCodecCopy = 'copy'
 _aCompabilityAudioThumbnail = '-id3v2_version'
 _aCompabilityVideoThumbnail = '-disposition:v:1'
-_aVideoFrames = '-vframes'
+_aVideoFrames = '-frames:v'
 # _aVideoFilter = '-vf'
 _argsMetadataAlbumArt = [
     '-metadata:s:v', 'title=Album Cover',
@@ -44,16 +44,8 @@ import subprocess
 from script_ import splitFilename
 _coverName = lambda source, ext: f'{splitFilename(source)[0]} (cover).{ext}'
 
-# ffmpeg -i test.mp3 -an cover.png
-_frameFromAudio = lambda source, output: subprocess.call([
-    _aEnvironment, _aInput, source,
-    _aAudioNone,
-    _aCodec, _aCodecCopy,
-    output,
-])
-
 # ffmpeg -i test.mp3 -map 0:a -c copy output.mp3
-_audioExport = lambda source, output: subprocess.call([
+_exportAudio = lambda source, output: subprocess.call([
     _aEnvironment, _aInput, source,
     _aMap, _aMap0a,
     _aCodec, _aCodecCopy,
@@ -61,15 +53,30 @@ _audioExport = lambda source, output: subprocess.call([
 ])
 
 # ffmpeg -i test.mp4 -map 0:v:0 -map 0:a -c copy output.mp4
-_videoExport = lambda source, output: subprocess.call([
+_exportVideo = lambda source, output: subprocess.call([
     _aEnvironment, _aInput, source,
     _aMap, _aMap0v0, _aMap, _aMap0a,
     _aCodec, _aCodecCopy,
     output,
 ])
 
-# ffmpeg -i test.mp3 -map 0 -vframes 1 cover.png
-_frameFromVideo = lambda source, output, mapping: subprocess.call([
+# ffmpeg -i test.mp3 -an cover.png
+_exportAudioCover = lambda source, output: subprocess.call([
+    _aEnvironment, _aInput, source,
+    _aAudioNone,
+    _aCodec, _aCodecCopy,
+    output,
+])
+
+# ffmpeg -i test.mp4 -frames:v 1 cover.png
+_exportVideoFrame1 = lambda source, output: subprocess.call([
+    _aEnvironment, _aInput, source,
+    _aVideoFrames, '1',
+    output,
+])
+
+# ffmpeg -i test.mp4 -map 0:v:1 -c copy -frames:v 1 cover.png
+_exportVideoFrame = lambda source, output, mapping: subprocess.call([
     _aEnvironment, _aInput, source,
     _aMap, mapping,
     _aCodec, _aCodecCopy,
@@ -78,7 +85,7 @@ _frameFromVideo = lambda source, output, mapping: subprocess.call([
 ])
 
 # ffmpeg -i test.mp3 -i cover.png -map 0:a -map 1 -c copy -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" output.mp3
-_framedAudioExport = lambda cover, source, output: subprocess.call([
+_exportFramedAudio = lambda cover, source, output: subprocess.call([
     _aEnvironment, _aInput, source, _aInput, cover,
     _aMap, _aMap0, _aMap, _aMap1,
     _aCodec, _aCodecCopy,
@@ -88,7 +95,7 @@ _framedAudioExport = lambda cover, source, output: subprocess.call([
 ])
 
 # ffmpeg -i test.mp4 -i cover.png -map 0:v:0 -map 0:a -map 1 -c copy -disposition:v:1 attached_pic output.mp4
-_framedVideoExport = lambda cover, source, output: subprocess.call([
+_exportFramedVideo = lambda cover, source, output: subprocess.call([
     _aEnvironment, _aInput, source, _aInput, cover,
     _aMap, _aMap0v0, _aMap, _aMap0a, _aMap, _aMap1,
     _aCodec, _aCodecCopy,
@@ -137,11 +144,11 @@ def thumbnailExport(source: str, imageExt: str):
     from script_ffprobe import translateOnStreamCountAOrB
     return translateExtAudioOrVideo(
         splitFilename(source)[1][1:],
-        onAudio=lambda: _frameFromAudio(source, _coverName(source, imageExt)),
+        onAudio=lambda: _exportAudioCover(source, _coverName(source, imageExt)),
         onVideo=lambda: translateOnStreamCountAOrB(
             source=source, a=2, b=3,
-            onA=lambda: _frameFromVideo(source, _coverName(source, imageExt), _aMap0v0),
-            onB=lambda: _frameFromVideo(source, _coverName(source, imageExt), _aMap0v1)
+            onA=lambda: _exportVideoFrame(source, _coverName(source, imageExt), _aMap0v0),
+            onB=lambda: _exportVideoFrame(source, _coverName(source, imageExt), _aMap0v1)
         )
     )
 
@@ -154,12 +161,12 @@ def thumbnailRemove(source: str):
         onAudio=lambda: translateOnStreamCountAOrB(
             source=source, a=1, b=2,
             onA=lambda: None,
-            onB=lambda: _audioExport(source, tempt)
+            onB=lambda: _exportAudio(source, tempt)
         ),
         onVideo=lambda: translateOnStreamCountAOrB(
             source=source, a=2, b=3,
             onA=lambda: None,
-            onB=lambda: _videoExport(source, tempt),
+            onB=lambda: _exportVideo(source, tempt),
         ),
     )
     from script_ import renameIfExist
@@ -176,13 +183,13 @@ def thumbnailAttach(source: str, cover: str, rejectReplace):
         splitFilename(source)[1][1:],
         onAudio=lambda: translateOnStreamCountAOrB(
             source=source, a=1, b=2,
-            onA=lambda: _framedAudioExport(cover, source, tempt),
-            onB=lambda: askBefore(_framedAudioExport)
+            onA=lambda: _exportFramedAudio(cover, source, tempt),
+            onB=lambda: askBefore(_exportFramedAudio)
         ),
         onVideo=lambda: translateOnStreamCountAOrB(
             source=source, a=2, b=3,
-            onA=lambda: _framedVideoExport(cover, source, tempt),
-            onB=lambda: askBefore(_framedVideoExport)
+            onA=lambda: _exportFramedVideo(cover, source, tempt),
+            onB=lambda: askBefore(_exportFramedVideo)
         ),
     )
     from script_ import renameIfExist
@@ -199,48 +206,53 @@ def thumbnailCopyToAnother(source: str, target: str, askForReplace):
 # 
 # 
 # 
-
-def _callThenRemoveBy(rejectToRemove):
-    from os import remove
-    def _callThenRemoveArg2(args: list):
-        subprocess.call(args)
-        remove(args[2])
-    
-    from os.path import abspath
-    def _callThenRemoveArg2IfSign(args: list):
-        subprocess.call(args)
-        origin = args[2]
-        if not rejectToRemove(abspath(origin)): remove(origin)
-
-    return _callThenRemoveArg2IfSign if rejectToRemove else _callThenRemoveArg2
-
-_conversionOf = lambda remove, sign: _callThenRemoveBy(sign) if remove else subprocess.call
-_convert = lambda source, output, transformer: transformer([
-    _aEnvironment,
-    _aInput, source,
-    output
+_convert = lambda source, output: subprocess.call([
+    _aEnvironment, _aInput, source, output
 ])
 
 def convert(source: str, ext: str, removeTransformed: bool):
     from script_ import splitFilename
     name = splitFilename(source)
-    if name[1][1:] == ext: return
-    _convert(source, f'{name[0]}.{ext}', _conversionOf(removeTransformed, None))
+    sExt = name[1][1:]
+    if sExt == ext: return
+    output = f'{name[0]}.{ext}'
+    _convert(source, output)
 
-def convertAll(
-        extIn: str,
-        extOut: str,
-        removeTransformed: bool,
-        includeSubDir: bool,
-        sign,
-    ):
+    # # ensure video to audio has thumbnail
+    # from book import generalVideoExts, generalAudioExts, png
+    # if sExt in generalVideoExts and ext in generalAudioExts:
+    #     from script_ffprobe import streamCountAsLine
+    #     if streamCountAsLine(source) == 2:
+    #         tempt = f'covered| {output}'
+    #         cover = _coverName(source, png)
+    #         _exportVideoFrame1(source, cover)
+    #         _exportFramedAudio(cover, output, tempt)
+    #         from os import rename, remove
+    #         remove(cover)
+    #         rename(tempt, output)
+    
+    if removeTransformed:
+        from os import remove
+        remove(source)
+
+def convertAll(extIn: str, extOut: str, includeSubDir: bool, sign):
+    from os import remove
+    def convertThenRemove(source: str, output: str):
+        _convert(source, output)
+        remove(source)
+    from os.path import abspath
+    def convertThenSignToRemove(source: str, output: str):
+        _convert(source, output)
+        if not sign(abspath(source)): remove(source)
+
+    convert = convertThenSignToRemove if sign else convertThenRemove
+
     from script_ import foreachFileNest, splitFilename
-    transformer = _conversionOf(removeTransformed, sign)
     def transforming(source: str):
         names = splitFilename(source)
         if names[1][1:] == extIn:
             output = f'{names[0]}.{extOut}'
             print(f'{source} -> {output}')
-            _convert(source, output, transformer)
+            convert(source, output)
     
     foreachFileNest(includeSubDir)(transforming)

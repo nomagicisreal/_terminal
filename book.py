@@ -16,7 +16,7 @@ uDowloadManyMp3OnDirectory = 'download many mp3 in directory'
 uDowloadMovOrMp4ToMov = 'download mov or mp4->mov'
 uConvertStream = 'convert stream'
 uConvertAllStream = 'convert all streams in directory (sign to remove origin)'
-uConvertAllStreamUpdate = 'convert all streams in directory (remove origin directly)'
+uConvertAllStreamUpdate = 'convert all streams in directory (remove transformed directly)'
 uShowTotalDurationOfStreams = 'show total duration of all stream in directory'
 uShowTotalDurationOfMp3s = 'show total duration of all mp3 in directory'
 uThumbnailExport = 'export thumbnail from stream'
@@ -75,7 +75,7 @@ def reserveConvert(u: str):
     from counter import counterConvertStream, counterConvertStreamAll
     if u == uConvertStream: return counterConvertStream()
     if u == uConvertAllStream: return counterConvertStreamAll()
-    if u == uConvertAllStreamUpdate: return counterConvertStreamAll(signIfRemove=False)
+    if u == uConvertAllStreamUpdate: return counterConvertStreamAll(signToRemove=False)
 
 def reserveShow(u: str):
     from counter import counterSumDuration

@@ -35,7 +35,7 @@ def whileInputReject(question: str) -> bool:
 
 def whileInputValidOption(options, optionName: str):
     while True:
-        option = whileInputNotEmpty(f'(q to quit) which {optionName}?')
+        option = whileInputNotEmpty(f'(q to quit) which {optionName}? ')
         if option in options: return option
         if option == 'q': return None
         print(f'unknown option: {option}\navailable {options=}')
@@ -147,16 +147,15 @@ def counterConvertStream(ext: str = ''):
         whileInputYorN('remove transformed? '),
     )
 
-def counterConvertStreamAll(extIn: str = '', extOut: str = '', signIfRemove: bool = True):
+def counterConvertStreamAll(extIn: str = '', extOut: str = '', signToRemove: bool = True):
     from book import mp4, mov
     from script_ffmpeg import convertAll
     whileEnsureLocation()
     convertAll(
         extIn=extIn if extIn else inputOrDefault('input extension', mov),
         extOut=extOut if extOut else inputOrDefault('output extension', mp4),
-        removeTransformed=True if signIfRemove else whileInputYorN('remove transformed? '),
         includeSubDir=whileInputYorN('include subdirectories? '),
-        sign=lambda path: whileInputReject(f'sure to remove {path}? ') if signIfRemove else None
+        sign=lambda path: whileInputReject(f'sure to remove {path}? ') if signToRemove else None
     )
 
 def counterThumbnailExport():
