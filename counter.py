@@ -35,8 +35,9 @@ def whileInputReject(question: str) -> bool:
 
 def whileInputValidOption(options, optionName: str):
     while True:
-        option = whileInputNotEmpty(f'which {optionName}? ')
+        option = whileInputNotEmpty(f'(q to quit) which {optionName}?')
         if option in options: return option
+        if option == 'q': return None
         print(f'unknown option: {option}\navailable {options=}')
 
 def whileInputValidOptionDict(options: dict):
@@ -48,20 +49,20 @@ def whileInputValidOptionDict(options: dict):
         lines.append(f'{i+1}'.ljust(7, '-') + f' {action}')
         indexes.append(f'{i+1}')
     
-    from counter_info import printDemo
+    from book import printDemo
     printDemo('available options:', lines)
     action = names[int(whileInputValidOption(indexes, 'option'))-1]
     print(f'continue to {action} ... ')
     return (action, options[action])
 
 def whileInputValidFile(title: str):
-    from utils import getCwdFiles
+    from script_ import getCwdFiles
     availableFiles = getCwdFiles()
     while True:
         path = whileInputNotEmpty(title)
         if path in availableFiles: return path
 
-        from utils import extensionsForFilename
+        from script_ import extensionsForFilename
         exts = extensionsForFilename(path)
         if exts:
             if len(exts) == 1 and not whileInputReject(f'do you mean {path}.{exts[0]}?'):
@@ -69,7 +70,7 @@ def whileInputValidFile(title: str):
             print(f'available extensions: {exts}')
             return f"{path}.{whileInputValidOption(exts, 'extension')}"
         
-        from utils import filenameIfMatchCwdDirectory
+        from script_ import filenameIfMatchCwdDirectory
         name = filenameIfMatchCwdDirectory(path)
         if name and name in availableFiles: return name
 
@@ -84,20 +85,27 @@ def whileInputValidUrl(title: str = 'url: '):
 
 def whileEnsureLocation(successShow: bool = False) -> str:
     from os import getcwd
-    from utils import chdirAndShowChildren
+    from script_ import chdirAndShowChildren
     while True:
         cwd = getcwd()
         destination = input(f'location (default: {cwd}): ')
         if not destination: return cwd
         chdirAndShowChildren(destination, successShow)
 
-def whileInputUrlExtensionToDownload(ext: str):
+def whileDownloadVideo(ext: str):
+    from book import mp4
     from script_ytdlp import download
-    from constants import mp4
-    return download(
-        whileInputValidUrl(),
-        ext if ext else inputOrDefault('extension', mp4)
-    )
+    while True:
+        download(whileInputValidUrl(), ext if ext else inputOrDefault('extension', mp4))
+        if whileInputReject('continue downloading?'): return
+
+def whileDownloadLocatedVideo(ext: str):
+    from book import mp4
+    from script_ytdlp import download
+    while True:
+        whileEnsureLocation()
+        download(whileInputValidUrl(), ext if ext else inputOrDefault('extension', mp4))
+        if whileInputReject('continue downloading?'): return
 
 # 
 # 
@@ -115,11 +123,11 @@ def whileInputUrlExtensionToDownload(ext: str):
 # 
 # 
 def counterRemoveFilesMatch(signBeforeRemove: bool = True):
-    from utils import removeFilesContain
+    from script_ import removeFilesContain
     whileEnsureLocation()
     removeFilesContain(
         regex=whileInputYorN('match by regex/words?'),
-        s=whileInputNotEmpty('pattern: '),
+        pattern=whileInputNotEmpty('pattern: '),
         includeSubDir=False,
         sign=whileInputReject if signBeforeRemove else None
     )
@@ -130,8 +138,8 @@ def counterRemoveFilesMatch(signBeforeRemove: bool = True):
 # 
 # 
 def counterConvertStream(ext: str = ''):
+    from book import mp4
     from script_ffmpeg import convert
-    from constants import mp4
     whileEnsureLocation()
     convert(
         whileInputValidFile('source: '),
@@ -140,20 +148,20 @@ def counterConvertStream(ext: str = ''):
     )
 
 def counterConvertStreamAll(extIn: str = '', extOut: str = '', signIfRemove: bool = True):
+    from book import mp4, mov
     from script_ffmpeg import convertAll
-    from constants import mp4, mov
     whileEnsureLocation()
     convertAll(
         extIn=extIn if extIn else inputOrDefault('input extension', mov),
         extOut=extOut if extOut else inputOrDefault('output extension', mp4),
         removeTransformed=True if signIfRemove else whileInputYorN('remove transformed? '),
         includeSubDir=whileInputYorN('include subdirectories? '),
-        sign=whileInputReject if signIfRemove else None
+        sign=lambda path: whileInputReject(f'sure to remove {path}? ') if signIfRemove else None
     )
 
 def counterThumbnailExport():
     from script_ffmpeg import thumbnailExport
-    from constants import png
+    from book import png
     whileEnsureLocation()
     thumbnailExport(
         whileInputValidFile('source: '),
@@ -173,7 +181,7 @@ def counterThumbnailAttatch():
     thumbnailAttach(
         source=whileInputValidFile('source: '),
         cover=whileInputValidFile('thumbnail: '),
-        rejectReplace=whileInputReject
+        rejectReplace=lambda: whileInputReject('replace exist thumnail?')
     )
 
 def counterThumbnailCopyToAnother():
@@ -182,7 +190,7 @@ def counterThumbnailCopyToAnother():
     thumbnailCopyToAnother(
         source=whileInputValidFile('source: '),
         target=whileInputValidFile('target: '),
-        askForReplace=whileInputReject
+        askForReplace=lambda: whileInputReject('replace exist thumnail?')
     )
 
 def counterSumDuration(ext: str = ''):
@@ -190,8 +198,8 @@ def counterSumDuration(ext: str = ''):
     whileEnsureLocation()
     result = sumDurations(ext if ext else inputOrDefault('to sum all ___ ', 'mp3'))
     if result:
-        from counter_info import printResultCount
-        from utils import timedeltaFromSeconds
+        from book import printResultCount
+        from script_ import timedeltaFromSeconds
         printResultCount(
             result[0],
             ext,
@@ -205,37 +213,18 @@ def counterSumDuration(ext: str = ''):
 # 
 # 
 # 
-def counterDownload(extension: str):
+def counterDownload(ext: str):
+    from book import mp4
+    from script_ytdlp import download
     whileEnsureLocation()
-    whileInputUrlExtensionToDownload(extension)
+    download(whileInputValidUrl(), ext if ext else inputOrDefault('extension', mp4))
 
 def counterDownloadMany(ext: str, askLocationEverytime: bool):
-    if askLocationEverytime:
-        while True:
-            whileEnsureLocation()
-            whileInputUrlExtensionToDownload(ext)
-            if whileInputReject('continue downloading?'): return
-    
-    whileEnsureLocation()
-    if not ext:
-        from constants import mp4
-        ext = inputOrDefault('extension', mp4)
-    
-    from script_ytdlp import download
-    while True:
-        download(whileInputValidUrl(), ext)
-        if whileInputReject('continue downloading?'): return
+    if askLocationEverytime: return whileDownloadLocatedVideo(ext)
+    from book import mp4
+    whileDownloadVideo(ext if ext else inputOrDefault('extension', mp4))
 
 def counterDownloadAOrBToA(a: str, b: str):
-    from script_ytdlp import downloadTry
-
+    from script_ytdlp import downloadAOrBToA
     whileEnsureLocation()
-    url = whileInputValidUrl()
-    ext = downloadTry(url, (a, b))
-    if ext == a: return
-    if ext == b:
-        from script_ytdlp import titleOf
-        from script_ffmpeg import convert
-        return convert(f'{titleOf(url)}.{b}', a, True)
-    
-    raise Exception(f"there is no {a}, {b} on {url}")
+    downloadAOrBToA(whileInputValidUrl(), extA=a, extB=b)

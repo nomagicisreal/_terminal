@@ -41,7 +41,7 @@ _argsMetadataAlbumArt = [
 # 
 # 
 import subprocess
-from utils import splitFilename
+from script_ import splitFilename
 _coverName = lambda source, ext: f'{splitFilename(source)[0]} (cover).{ext}'
 
 # ffmpeg -i test.mp3 -an cover.png
@@ -133,7 +133,7 @@ _framedVideoExport = lambda cover, source, output: subprocess.call([
 # 
 # 
 def thumbnailExport(source: str, imageExt: str):
-    from utils import splitFilename, translateExtAudioOrVideo
+    from script_ import splitFilename, translateExtAudioOrVideo
     from script_ffprobe import translateOnStreamCountAOrB
     return translateExtAudioOrVideo(
         splitFilename(source)[1][1:],
@@ -147,7 +147,7 @@ def thumbnailExport(source: str, imageExt: str):
 
 def thumbnailRemove(source: str):
     tempt = f'no covered| {source}'
-    from utils import splitFilename, translateExtAudioOrVideo
+    from script_ import splitFilename, translateExtAudioOrVideo
     from script_ffprobe import translateOnStreamCountAOrB
     translateExtAudioOrVideo(
         splitFilename(source)[1][1:],
@@ -162,15 +162,15 @@ def thumbnailRemove(source: str):
             onB=lambda: _videoExport(source, tempt),
         ),
     )
-    from utils import renameIfExist
+    from script_ import renameIfExist
     renameIfExist(tempt, source) # update original stream
 
 def thumbnailAttach(source: str, cover: str, rejectReplace):
     tempt = f'covered| {source}'
-    from utils import splitFilename, translateExtAudioOrVideo
+    from script_ import splitFilename, translateExtAudioOrVideo
     from script_ffprobe import translateOnStreamCountAOrB
     def askBefore(export):
-        if not rejectReplace('replace exist thumnail?'):
+        if not rejectReplace():
             export(cover, source, tempt)
     translateExtAudioOrVideo(
         splitFilename(source)[1][1:],
@@ -185,11 +185,11 @@ def thumbnailAttach(source: str, cover: str, rejectReplace):
             onB=lambda: askBefore(_framedVideoExport)
         ),
     )
-    from os import rename
-    rename(tempt, source) # update original stream
+    from script_ import renameIfExist
+    renameIfExist(tempt, source) # update original stream
 
 def thumbnailCopyToAnother(source: str, target: str, askForReplace):
-    from constants import png
+    from book import png
     cover = _coverName(source, png)
     thumbnailExport(source, png)
     thumbnailAttach(target, cover, askForReplace)
@@ -200,28 +200,29 @@ def thumbnailCopyToAnother(source: str, target: str, askForReplace):
 # 
 # 
 
-def _callThenRemoveBy(sign):
+def _callThenRemoveBy(rejectToRemove):
+    from os import remove
     def _callThenRemoveArg2(args: list):
         subprocess.call(args)
-        subprocess.call(['rm', args[2]])
+        remove(args[2])
     
+    from os.path import abspath
     def _callThenRemoveArg2IfSign(args: list):
-        from os.path import abspath
         subprocess.call(args)
         origin = args[2]
-        if not sign(f'sure to remove {abspath(origin)}?'): subprocess.call(['rm', origin])
+        if not rejectToRemove(abspath(origin)): remove(origin)
 
-    return _callThenRemoveArg2IfSign if sign else _callThenRemoveArg2
+    return _callThenRemoveArg2IfSign if rejectToRemove else _callThenRemoveArg2
 
 _conversionOf = lambda remove, sign: _callThenRemoveBy(sign) if remove else subprocess.call
 _convert = lambda source, output, transformer: transformer([
     _aEnvironment,
-    _aInput, source, # TODO: convert mp4 to mov with thumbnail stream
+    _aInput, source,
     output
 ])
 
 def convert(source: str, ext: str, removeTransformed: bool):
-    from utils import splitFilename
+    from script_ import splitFilename
     name = splitFilename(source)
     if name[1][1:] == ext: return
     _convert(source, f'{name[0]}.{ext}', _conversionOf(removeTransformed, None))
@@ -233,7 +234,7 @@ def convertAll(
         includeSubDir: bool,
         sign,
     ):
-    from utils import foreachFileNest, splitFilename
+    from script_ import foreachFileNest, splitFilename
     transformer = _conversionOf(removeTransformed, sign)
     def transforming(source: str):
         names = splitFilename(source)

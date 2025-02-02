@@ -1,15 +1,14 @@
-import datetime
 import subprocess
 import os
 import re
+import datetime
 
 # 
 # 
 # lambda
 # 
 # 
-stdoutMessageOf = lambda args : subprocess.run(args, capture_output=True).stdout.decode()
-stderrMessageOf = lambda args : subprocess.run(args, capture_output=True).stderr.decode()
+stdoutMessageOf = lambda args: subprocess.run(args, capture_output=True).stdout.decode().strip()
 splitFilename = lambda source: os.path.splitext(source) # 'name.ext' -> ('name', '.ext')
 walking = lambda location: next(os.walk(location))
 getCwdDirectories = lambda : walking('.')[1]
@@ -50,7 +49,7 @@ def extensionsForFilename(name: str):
     return extensions
 
 def translateExtAudioOrVideo(ext: str, onAudio, onVideo):
-    from constants import generalAudioExts, generalVideoExts
+    from book import generalAudioExts, generalVideoExts
     if ext in generalAudioExts: return onAudio()
     if ext in generalVideoExts: return onVideo()
     raise Exception(
@@ -66,6 +65,7 @@ def filenameIfMatchCwdDirectory(path: str):
         return split(path[match.end() + 1:])[0]
 
 def chdirAndShowChildren(location: str, successShow: bool = False) -> bool: # return true when choosen
+    import subprocess
     try:
         os.chdir(location)
         if successShow: subprocess.call(['ls', '-d']) # list only directories
@@ -76,7 +76,7 @@ def chdirAndShowChildren(location: str, successShow: bool = False) -> bool: # re
         subprocess.call(['ls', '-d'])
         return False
 
-def removeFilesContain(regex: bool, s: str, includeSubDir: bool, sign):
+def removeFilesContain(regex: bool, pattern: str, includeSubDir: bool, sign):
     from re import match
     validate = match if regex else lambda pattern, source: pattern in source
     remover = lambda source: source
@@ -88,9 +88,9 @@ def removeFilesContain(regex: bool, s: str, includeSubDir: bool, sign):
                         os.remove(source)
 
             return checking
-        remover = removerCareful(s)
+        remover = removerCareful(pattern)
     else:
-        remover = lambda source: os.remove(source) if validate(s, source) else None
+        remover = lambda source: os.remove(source) if validate(pattern, source) else None
     
     foreachFileNest(includeSubDir)(remover)
 
@@ -121,6 +121,7 @@ def foreachFile(translate, parent: str = '.'):
 
 
 def foreachFileNestBreadthFirst(translate, parent: str = '.'):
+    from book import printDemo
     def nesting(dir: str, children: list):
         print(f'open {dir} ...')
         if children[2]:

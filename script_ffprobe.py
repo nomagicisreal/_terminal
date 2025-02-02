@@ -1,5 +1,3 @@
-from utils import stdoutMessageOf
-
 # 
 # 
 # 
@@ -23,7 +21,7 @@ _aFormatCSVOnlyField = 'csv=p=0'
 # 
 # 
 # 
-
+from script_ import stdoutMessageOf
 # 
 # ffprobe -i filename.mp3 -v quiet -show_entries format=duration -of csv="p=0"
 durationOf = lambda source : float(stdoutMessageOf([
@@ -38,7 +36,7 @@ durationOf = lambda source : float(stdoutMessageOf([
     _aFormatCSVOnlyField
 ]))
 
-from constants import aStdoutAndStderr, aPipe, aGrep, aWordCount, aWordCountLine
+from book import aStdoutAndStderr, aPipe, aGrep, aWordCount, aWordCountLine
 import subprocess
 
 subprocessShellPipeText = lambda args: subprocess.run(
@@ -60,7 +58,7 @@ def sumDurations(ext: str):
     seconds = 0.0
     count = 0
 
-    from utils import splitFilename, foreachFileNest
+    from script_ import splitFilename, foreachFileNest
     def consuming(source: str):
         if splitFilename(source)[1][1:] == ext:
             global seconds
