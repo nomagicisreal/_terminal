@@ -70,8 +70,8 @@ def whileInputValidFile(title: str):
             print(f'available extensions: {exts}')
             return f"{path}.{whileInputValidOption(exts, 'extension')}"
         
-        from script_ import filenameIfMatchCwdDirectory
-        name = filenameIfMatchCwdDirectory(path)
+        from script_ import pathContainsCwdDirectory
+        name = pathContainsCwdDirectory(path)
         if name and name in availableFiles: return name
 
         print(f'path not found: {path}')
@@ -122,6 +122,20 @@ def whileDownloadLocatedVideo(ext: str):
 # 
 # 
 # 
+def counterMudiDownloadPlaylist():
+    file_dictionary = 'my_music_dictionary.csv'
+    file_location = '/Users/nomisal/Downloads/music'
+    from os import chdir
+    chdir(file_location)
+    from script_mudi import downloadPlaylist
+    from counter import whileInputValidUrl
+    from script_ import containsFile
+    if not containsFile(file_dictionary): return print(f'require {file_dictionary} in {file_location}')
+    downloadPlaylist(
+        whileInputValidUrl(),
+        file_dictionary,
+    )
+
 def counterRemoveFilesMatch(signBeforeRemove: bool = True):
     from script_ import removeFilesContain
     whileEnsureLocation()

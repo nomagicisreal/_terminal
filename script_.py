@@ -8,11 +8,12 @@ import datetime
 # lambda
 # 
 # 
-stdoutMessageOf = lambda args: subprocess.run(args, capture_output=True).stdout.decode().strip()
+stdoutMessageOf = lambda args: subprocess.run(args, capture_output=True).stdout.decode().strip() # discard \n
 splitFilename = lambda source: os.path.splitext(source) # 'name.ext' -> ('name', '.ext')
 walking = lambda location: next(os.walk(location))
 getCwdDirectories = lambda : walking('.')[1]
 getCwdFiles = lambda : walking('.')[2]
+containsFile = lambda name: name in getCwdFiles()
 matchCwdDirectory = lambda path : re.match('^' + os.getcwd(), path)
 
 timedeltaFromSeconds = lambda seconds: datetime.timedelta(seconds=seconds)
@@ -58,7 +59,7 @@ def translateExtAudioOrVideo(ext: str, onAudio, onVideo):
         f'supported video extension: {generalVideoExts}\n'
     )
 
-def filenameIfMatchCwdDirectory(path: str):
+def pathContainsCwdDirectory(path: str):
     match = matchCwdDirectory(path)
     if match:
         from shlex import split

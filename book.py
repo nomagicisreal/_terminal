@@ -7,6 +7,7 @@
 # 
 # 
 # 
+uMudi = 'mudi'
 uRemoveFilesNameMatchPattern = 'remove files name match pattern (sign before remove)'
 uRemoveFilesNameMatchPatternNoCheck = 'remove files name match pattern (without check)'
 uDowloadStream = 'download stream'
@@ -43,7 +44,7 @@ usecasesShow = (
     uShowTotalDurationOfStreams, uShowTotalDurationOfMp3s,
 )
 
-usecasesAlbumnArt = (
+usecasesThumbnail = (
     uThumbnailExport, uThumbnailRemove,
     uThumbnailAttatch, uThumbnailCopyToAnother
 )
@@ -57,6 +58,10 @@ usecasesAlbumnArt = (
 # 
 # 
 # 
+def reserveMudi(u: str):
+    from counter import counterMudiDownloadPlaylist
+    if u == uMudi: return counterMudiDownloadPlaylist()
+
 def reserveRemove(u: str):
     from counter import counterRemoveFilesMatch
     if u == uRemoveFilesNameMatchPattern: return counterRemoveFilesMatch()
@@ -82,7 +87,7 @@ def reserveShow(u: str):
     if u == uShowTotalDurationOfStreams: return counterSumDuration()
     if u == uShowTotalDurationOfMp3s: return counterSumDuration(mp3)
 
-def reserveAlbumArt(u: str):
+def reserveThumbnail(u: str):
     from counter import counterThumbnailRemove, counterThumbnailExport, counterThumbnailAttatch, counterThumbnailCopyToAnother
     if u == uThumbnailExport: return counterThumbnailExport()
     if u == uThumbnailRemove: return counterThumbnailRemove()

@@ -44,26 +44,25 @@ fieldId = f'%(id)s'
 # 
 # 
 
+from script_ import stdoutMessageOf
 import subprocess
 # yt-dlp --print "%(title)s" "https://www.youtube.com/..." (passing playlist url return every video field in many lines)
-infoOf = lambda url, field: subprocess.run([
+infoOf = lambda url, field: stdoutMessageOf([
     _aEnvironment, _aPrint, field, url
-], capture_output=True,
-).stdout.decode().strip() # discard \n
+])
 
 # yt-dlp --playlist-items 1 --print "%(playlist_title)s" "https://www.youtube.com/playlist?list=PL1234567890"
-infoPlaylistItem1Of = lambda url, field: subprocess.run([
+infoPlaylistTitleOf = lambda url: stdoutMessageOf([
     _aEnvironment,
     _aPlaylistItems, '1',
-    _aPrint, field, url,
-], capture_output=True,
-).stdout.decode().strip()
+    _aPrint, fieldPlaylistTitle, url,
+])
 
 download = lambda url, ext, format = fieldTitle, check = False: subprocess.run([
     _aEnvironment,
     _aOutputFormat, format,
-    *argsPlatform(url),
-    *argsExtension(ext),
+    *_argsPlatform(url),
+    *_argsExtension(ext),
     url,
 ], check=check)
 
@@ -73,10 +72,10 @@ import re
 
 # "youtu.be" occurs when url comes from sharing function
 isOnYoutube = lambda url: re.search(r'^https://(www\.)?(youtube\.com|youtu\.be)/', url)
-searchAppendedPlaylistIdOf = lambda url: re.search(r'&list=([\w-]+)', url)
-searchVideoIdOf = lambda url: re.search(r'(?:v=|\/)([\w-]{11})', url).group(1)
-
 isOnInstagram = lambda url: re.search(r'^https://(www\.)?(instagram\.com)/', url)
+
+_searchAppendedPlaylistIdOf = lambda url: re.search(r'&list=([\w-]+)', url)
+searchVideoIdOf = lambda url: re.search(r'(?:v=|\/)([\w-]{11})', url).group(1)
 
 # 
 # 
@@ -89,15 +88,15 @@ isOnInstagram = lambda url: re.search(r'^https://(www\.)?(instagram\.com)/', url
 # 
 # 
 # 
-def argsPlatform(url: str) -> list:
-    if isOnYoutube(url): return dowloadFromYoutube(url)
-    if isOnInstagram(url): return downloadFromInstagram(url)
+def _argsPlatform(url: str) -> list:
+    if isOnYoutube(url): return __argsPlatformYoutube(url)
+    if isOnInstagram(url): return __argsPlatformInstagram(url)
     raise Exception(
         f'unimplement url: {url}\n'
         f'only implement youtube, instagram for now'
     )
 
-def argsExtension(ext: str) -> str:
+def _argsExtension(ext: str) -> str:
     from book import mp4, generalAudioExts, generalVideoExts
     if ext in generalAudioExts:
         return [_aExtractAudio, _aFormatAudio, ext]
@@ -107,6 +106,32 @@ def argsExtension(ext: str) -> str:
     
     raise Exception(f'unknown format: {ext}')
 
+
+def __argsPlatformYoutube(url: str):
+    # 
+    # case 1: https://www.youtube.com/watch?v=...
+    # case 2: https://www.youtube.com/playlist?list=...
+    # case 3: https://www.youtube.com/watch?v=...&list=...&index=...
+    # 
+    result = [_aEmbedThumbnail]
+    if _searchAppendedPlaylistIdOf(url):
+        from counter import whileInputReject
+        if whileInputReject(f"download all the other video in playlist: '{infoPlaylistTitleOf(url, fieldPlaylistTitle)}'? "):
+            result.append(_aNoPlaylist)
+
+    return result
+
+def __argsPlatformInstagram():
+    # 
+    # instagram needs to login before downloading
+    # 
+    return [_aCookiesFromBrowser, _aBrowserChrome]
+
+
+# 
+# 
+# 
+# function
 # 
 # 
 # 
@@ -122,31 +147,3 @@ def downloadAOrBToA(url: str, extA: str, extB: str):
             convert(f'{infoOf(url, fieldTitle)}.{extA}', extB, removeTransformed=True)
         except CalledProcessError:
             raise Exception(f"there is no {extA}, {extB} on {url}")
-
-
-# 
-# 
-# 
-# function
-# 
-# 
-# 
-def dowloadFromYoutube(url: str):
-    # 
-    # case 1: https://www.youtube.com/watch?v=...
-    # case 2: https://www.youtube.com/playlist?list=...
-    # case 3: https://www.youtube.com/watch?v=...&list=...&index=...
-    # 
-    result = [_aEmbedThumbnail]
-    if searchAppendedPlaylistIdOf(url):
-        from counter import whileInputReject
-        if whileInputReject(f"download all the other video in playlist: '{infoPlaylistItem1Of(url, fieldPlaylistTitle)}'? "):
-            result.append(_aNoPlaylist)
-
-    return result
-
-def downloadFromInstagram():
-    # 
-    # instagram needs to login before downloading
-    # 
-    return [_aCookiesFromBrowser, _aBrowserChrome]
