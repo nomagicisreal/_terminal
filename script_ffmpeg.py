@@ -64,7 +64,6 @@ _exportVideo = lambda source, output: subprocess.call([
 _exportAudioCover = lambda source, output: subprocess.call([
     _aEnvironment, _aInput, source,
     _aAudioNone,
-    _aCodec, _aCodecCopy,
     output,
 ])
 
@@ -79,7 +78,6 @@ _exportVideoFrame1 = lambda source, output: subprocess.call([
 _exportVideoFrame = lambda source, output, mapping: subprocess.call([
     _aEnvironment, _aInput, source,
     _aMap, mapping,
-    _aCodec, _aCodecCopy,
     _aVideoFrames, '1',
     output,
 ])
@@ -206,7 +204,7 @@ def thumbnailCopyToAnother(source: str, target: str, askForReplace):
 # 
 # 
 # 
-_convert = lambda source, output: subprocess.call([
+_convert = lambda source, output: subprocess.call([ 
     _aEnvironment, _aInput, source, output
 ])
 
