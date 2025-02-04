@@ -7,31 +7,37 @@
 # 
 # 
 # 
-uMudi = 'mudi'
+uMudiDownloadPlaylist = 'mudi download playlist'
+uMudiCopyMusic = 'mudi copy music'
+uMudiCopyMusicInPath = 'mudi copy music in path'
 uRemoveFilesNameMatchPattern = 'remove files name match pattern (sign before remove)'
 uRemoveFilesNameMatchPatternNoCheck = 'remove files name match pattern (without check)'
 uDowloadStream = 'download stream'
 uDowloadMp3 = 'download mp3'
-uDowloadManyMp3 = 'download many mp3'
-uDowloadManyMp3OnDirectory = 'download many mp3 in directory'
+uDowloadMp3InPath = 'download mp3 in path'
 uDowloadMovOrMp4ToMov = 'download mov or mp4->mov'
 uConvertStream = 'convert stream'
-uConvertAllStream = 'convert all streams in directory (sign to remove origin)'
-uConvertAllStreamUpdate = 'convert all streams in directory (remove transformed directly)'
-uShowTotalDurationOfStreams = 'show total duration of all stream in directory'
-uShowTotalDurationOfMp3s = 'show total duration of all mp3 in directory'
+uConvertAllStream = 'convert all streams in path (sign to retain origin)'
+uConvertAllStreamUpdate = 'convert all streams in path (remove transformed directly)'
+uShowTotalDurationOfStreams = 'show total duration of all stream in path'
+uShowTotalDurationOfMp3s = 'show total duration of all mp3 in path'
 uThumbnailExport = 'export thumbnail from stream'
 uThumbnailRemove = 'remove thumbnail of stream'
 uThumbnailAttatch = 'attatch thumbnail to stream'
 uThumbnailCopyToAnother = 'copy thumbnail from stream to stream'
+
+usecasesMudi = (
+    uMudiDownloadPlaylist,
+    uMudiCopyMusic, uMudiCopyMusicInPath,
+)
 
 usecasesRemove = (
     uRemoveFilesNameMatchPattern, uRemoveFilesNameMatchPatternNoCheck
 )
 
 usecasesDownload = (
-    uDowloadStream, uDowloadMp3,
-    uDowloadManyMp3, uDowloadManyMp3OnDirectory,
+    uDowloadStream,
+    uDowloadMp3, uDowloadMp3InPath,
     uDowloadMovOrMp4ToMov
 )
 
@@ -59,8 +65,10 @@ usecasesThumbnail = (
 # 
 # 
 def reserveMudi(u: str):
-    from counter import counterMudiDownloadPlaylist
-    if u == uMudi: return counterMudiDownloadPlaylist()
+    from counter import counterMudiDownloadPlaylist, counterMudiCopy, counterMudiCopyInPath
+    if u == uMudiDownloadPlaylist: return counterMudiDownloadPlaylist()
+    if u == uMudiCopyMusic: return counterMudiCopy()
+    if u == uMudiCopyMusicInPath: return counterMudiCopyInPath()
 
 def reserveRemove(u: str):
     from counter import counterRemoveFilesMatch
@@ -69,11 +77,10 @@ def reserveRemove(u: str):
 
 
 def reserveDownload(u: str):
-    from counter import counterDownload, counterDownloadMany, counterDownloadAOrBToA
+    from counter import counterDownload, counterDownloadAOrBToA
     if u == uDowloadStream: return counterDownload('')
-    if u == uDowloadMp3: return counterDownload(mp3)
-    if u == uDowloadManyMp3: return counterDownloadMany(mp3, True)
-    if u == uDowloadManyMp3OnDirectory: return counterDownloadMany(mp3, False)
+    if u == uDowloadMp3: return counterDownload(mp3, True)
+    if u == uDowloadMp3InPath: return counterDownload(mp3, False)
     if u == uDowloadMovOrMp4ToMov: return counterDownloadAOrBToA(mov, mp4)
 
 def reserveConvert(u: str):

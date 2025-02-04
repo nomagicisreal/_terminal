@@ -64,17 +64,11 @@ _exportVideo = lambda source, output: subprocess.call([
 _exportAudioCover = lambda source, output: subprocess.call([
     _aEnvironment, _aInput, source,
     _aAudioNone,
+    _aCodec, _aCodecCopy,
     output,
 ])
 
-# ffmpeg -i test.mp4 -frames:v 1 cover.png
-_exportVideoFrame1 = lambda source, output: subprocess.call([
-    _aEnvironment, _aInput, source,
-    _aVideoFrames, '1',
-    output,
-])
-
-# ffmpeg -i test.mp4 -map 0:v:1 -c copy -frames:v 1 cover.png
+# ffmpeg -i test.mp4 -map 0:v:1 -frames:v 1 cover.png
 _exportVideoFrame = lambda source, output, mapping: subprocess.call([
     _aEnvironment, _aInput, source,
     _aMap, mapping,
@@ -216,14 +210,14 @@ def convert(source: str, ext: str, removeTransformed: bool):
     output = f'{name[0]}.{ext}'
     _convert(source, output)
 
-    # # ensure video to audio has thumbnail
+    # ensure video to audio has thumbnail, despite video hasn't thumbnail
     # from book import generalVideoExts, generalAudioExts, png
     # if sExt in generalVideoExts and ext in generalAudioExts:
     #     from script_ffprobe import streamCountAsLine
     #     if streamCountAsLine(source) == 2:
     #         tempt = f'covered| {output}'
     #         cover = _coverName(source, png)
-    #         _exportVideoFrame1(source, cover)
+    #         _exportVideoFrame(source, cover, _aMap0v0)
     #         _exportFramedAudio(cover, output, tempt)
     #         from os import rename, remove
     #         remove(cover)

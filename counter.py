@@ -16,10 +16,17 @@ def inputOrDefault(title: str, option):
 # 
 # 
 # 
-def whileInputNotEmpty(message: str) -> str:
+def whileInputNotEmpty(message: str, interpretShellLikeString: bool = True):
+    # 
+    # shell like string be like "Songbird\ \(Atjazz\ Love\ Soul\ Remix\).mp3"
+    # 
     while True:
         value = input(message)
-        if value: return value
+        if value:
+            if interpretShellLikeString:
+                from shlex import split
+                return split(value)[0]
+            return value
 
 def whileInputYorN(question: str) -> bool:
     while True:
@@ -55,26 +62,31 @@ def whileInputValidOptionDict(options: dict):
     print(f'continue to {action} ... ')
     return (action, options[action])
 
-def whileInputValidFile(title: str):
-    from script_ import getCwdFiles
-    availableFiles = getCwdFiles()
-    while True:
-        path = whileInputNotEmpty(title)
-        if path in availableFiles: return path
+def whileInputValidFile(title: str, parent: str = '', defaultForOnlyExt: bool = False):
+    from os import path
+    pathOf = (lambda file: path.join(parent, file)) if parent else (lambda file: file)
+    def isValidFile(name: str):
+        # check filename
+        if path.isfile(pathOf(name)): return name
 
+        # check filename without extension
         from script_ import extensionsForFilename
-        exts = extensionsForFilename(path)
+        exts = extensionsForFilename(name, parent)
         if exts:
-            if len(exts) == 1 and not whileInputReject(f'do you mean {path}.{exts[0]}?'):
-                return f'{path}.{exts[0]}'
+            if len(exts) == 1:
+                filename = f'{name}.{exts[0]}'
+                if defaultForOnlyExt: return filename
+                if whileInputReject(f'do you mean {filename}?'): return None
+                else: return filename
             print(f'available extensions: {exts}')
-            return f"{path}.{whileInputValidOption(exts, 'extension')}"
+            return f"{name}.{whileInputValidOption(exts, 'extension')}"
         
-        from script_ import pathContainsCwdDirectory
-        name = pathContainsCwdDirectory(path)
-        if name and name in availableFiles: return name
-
-        print(f'path not found: {path}')
+    
+    while True:
+        name = whileInputNotEmpty(title)
+        validFile = isValidFile(name)
+        if validFile: return pathOf(validFile)
+        print(f'path not found: {pathOf(name)}')
 
 def whileInputValidUrl(title: str = 'url: '):
     from validators import url as validate
@@ -92,20 +104,11 @@ def whileEnsureLocation(successShow: bool = False) -> str:
         if not destination: return cwd
         chdirAndShowChildren(destination, successShow)
 
-def whileDownloadVideo(ext: str):
-    from book import mp4
-    from script_ytdlp import download
+def whileNotRejectToContinue(consume, task: str):
     while True:
-        download(whileInputValidUrl(), ext if ext else inputOrDefault('extension', mp4))
-        if whileInputReject('continue downloading?'): return
+        consume()
+        if whileInputReject(f'continue {task}?'): return
 
-def whileDownloadLocatedVideo(ext: str):
-    from book import mp4
-    from script_ytdlp import download
-    while True:
-        whileEnsureLocation()
-        download(whileInputValidUrl(), ext if ext else inputOrDefault('extension', mp4))
-        if whileInputReject('continue downloading?'): return
 
 # 
 # 
@@ -122,20 +125,6 @@ def whileDownloadLocatedVideo(ext: str):
 # 
 # 
 # 
-def counterMudiDownloadPlaylist():
-    file_dictionary = 'my_music_dictionary.csv'
-    file_location = '/Users/nomisal/Downloads/music'
-    from os import chdir
-    chdir(file_location)
-    from script_mudi import downloadPlaylist
-    from counter import whileInputValidUrl
-    from script_ import containsFile
-    if not containsFile(file_dictionary): return print(f'require {file_dictionary} in {file_location}')
-    downloadPlaylist(
-        whileInputValidUrl(),
-        file_dictionary,
-    )
-
 def counterRemoveFilesMatch(signBeforeRemove: bool = True):
     from script_ import removeFilesContain
     whileEnsureLocation()
@@ -145,6 +134,50 @@ def counterRemoveFilesMatch(signBeforeRemove: bool = True):
         includeSubDir=False,
         sign=whileInputReject if signBeforeRemove else None
     )
+
+# 
+# 
+# for mudi
+# 
+# 
+def counterMudiDownloadPlaylist():
+    from script_mudi import hasPermission, appendCsvThenDownloadPlaylist
+    if hasPermission():
+        appendCsvThenDownloadPlaylist(
+            whileInputValidUrl('playlist url: '),
+        )
+
+def counterMudiCopy():
+    from script_mudi import hasPermission, copyMusicTo
+    if hasPermission():
+        whileNotRejectToContinue(
+            lambda: copyMusicTo(
+                whileInputValidFile('youtube id: ', parent='test', defaultForOnlyExt=True),
+                whileInputNotEmpty('path: ')
+            ),
+            task='copy music'
+        )
+        
+def counterMudiCopyInPath():
+    from script_mudi import hasPermission, copyMusicTo, file_parent
+    if hasPermission():
+        while True:
+            path = whileInputNotEmpty('path: ')
+            whileNotRejectToContinue(
+                lambda: copyMusicTo(
+                    whileInputValidFile(
+                        'youtube id: ',
+                        parent=file_parent,
+                        defaultForOnlyExt=True
+                    ),
+                    path,
+                ),
+                task=f'copy music into {path}'
+            )
+            if whileInputYorN('y for switch path, n for exit'): continue
+            return
+    
+
 
 # 
 # 
@@ -216,7 +249,7 @@ def counterSumDuration(ext: str = ''):
         printResultCount(
             result[0],
             ext,
-            f'play all {ext} takes {timedeltaFromSeconds(int(result[1]))}'
+            f'playing all {ext} takes {timedeltaFromSeconds(int(result[1]))}'
         )
 
 # 
@@ -226,16 +259,23 @@ def counterSumDuration(ext: str = ''):
 # 
 # 
 # 
-def counterDownload(ext: str):
+def counterDownload(ext: str, askLocationEverytime: bool):
     from book import mp4
     from script_ytdlp import download
-    whileEnsureLocation()
-    download(whileInputValidUrl(), ext if ext else inputOrDefault('extension', mp4))
-
-def counterDownloadMany(ext: str, askLocationEverytime: bool):
-    if askLocationEverytime: return whileDownloadLocatedVideo(ext)
-    from book import mp4
-    whileDownloadVideo(ext if ext else inputOrDefault('extension', mp4))
+    if askLocationEverytime:
+        def downloading():
+            whileEnsureLocation()
+            download(whileInputValidUrl(), ext if ext else inputOrDefault('extension', mp4))
+        return whileNotRejectToContinue(downloading, task='download')
+    
+    whileNotRejectToContinue(
+        lambda: download(
+            whileInputValidUrl(),
+            ext if ext else inputOrDefault('extension', mp4),
+        ),
+        task='downloading'
+    )
+    
 
 def counterDownloadAOrBToA(a: str, b: str):
     from script_ytdlp import downloadAOrBToA

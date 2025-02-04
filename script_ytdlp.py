@@ -17,7 +17,7 @@
 # 
 _aEnvironment = 'yt-dlp'
 _aEmbedThumbnail = '--embed-thumbnail'
-_aCookiesFromBrowser = '--cookies-from-browser'
+_aCookiesFromBrowser = '--cookies-from-browser' # some video need account information stored on browser before view
 _aBrowserChrome = 'chrome'
 _aOutputFormat = '-o'
 _aExtractAudio = '-x'
@@ -47,26 +47,35 @@ fieldId = f'%(id)s'
 from script_ import stdoutMessageOf
 import subprocess
 # yt-dlp --print "%(title)s" "https://www.youtube.com/..." (passing playlist url return every video field in many lines)
-infoOf = lambda url, field: stdoutMessageOf([
-    _aEnvironment, _aPrint, field, url
+infoOf = lambda url, field, needsCookie = False: stdoutMessageOf([
+    _aEnvironment, *_argsCookies(needsCookie),
+    _aPrint, field, url
 ])
 
 # yt-dlp --playlist-items 1 --print "%(playlist_title)s" "https://www.youtube.com/playlist?list=PL1234567890"
-infoPlaylistTitleOf = lambda url: stdoutMessageOf([
-    _aEnvironment,
+infoPlaylistTitleOf = lambda url, needsCookie = False: stdoutMessageOf([
+    _aEnvironment, *_argsCookies(needsCookie), # for watch later playlist or private playlist
     _aPlaylistItems, '1',
     _aPrint, fieldPlaylistTitle, url,
 ])
 
-download = lambda url, ext, format = fieldTitle, check = False: subprocess.run([
-    _aEnvironment,
+# yt-dlp -o ...
+download = lambda url, ext, format = fieldTitle, needsCookie = False, check = False: subprocess.run([
+    _aEnvironment, *_argsCookies(needsCookie),
     _aOutputFormat, format,
     *_argsPlatform(url),
     *_argsExtension(ext),
     url,
 ], check=check)
 
-
+# # yt-dlp -o ...
+# downloadYoutubeAccountPlaylists = lambda ext, format = fieldTitle: subprocess.call([
+#     _aEnvironment, *_argsCookies(True),
+#     _aOutputFormat, format,
+#     _aEmbedThumbnail,
+#     *_argsExtension(ext),
+#     'https://www.youtube.com/feed/playlists',
+# ])
 
 import re
 
@@ -88,6 +97,8 @@ searchVideoIdOf = lambda url: re.search(r'(?:v=|\/)([\w-]{11})', url).group(1)
 # 
 # 
 # 
+_argsCookies = lambda needs: [_aCookiesFromBrowser, _aBrowserChrome] if needs else []
+
 def _argsPlatform(url: str) -> list:
     if isOnYoutube(url): return __argsPlatformYoutube(url)
     if isOnInstagram(url): return __argsPlatformInstagram(url)
@@ -107,25 +118,25 @@ def _argsExtension(ext: str) -> str:
     raise Exception(f'unknown format: {ext}')
 
 
+# 
+# case 1: https://www.youtube.com/watch?v=...
+# case 2: https://www.youtube.com/playlist?list=...
+# case 3: https://www.youtube.com/watch?v=...&list=...&index=...
+# 
 def __argsPlatformYoutube(url: str):
     # 
-    # case 1: https://www.youtube.com/watch?v=...
-    # case 2: https://www.youtube.com/playlist?list=...
-    # case 3: https://www.youtube.com/watch?v=...&list=...&index=...
+    
     # 
-    result = [_aEmbedThumbnail]
+    result = [_aEmbedThumbnail, _aCookiesFromBrowser, _aBrowserChrome]
     if _searchAppendedPlaylistIdOf(url):
         from counter import whileInputReject
-        if whileInputReject(f"download all the other video in playlist: '{infoPlaylistTitleOf(url, fieldPlaylistTitle)}'? "):
+        if whileInputReject(f"download all the other video in playlist: '{infoPlaylistTitleOf(url)}'? "):
             result.append(_aNoPlaylist)
 
     return result
 
 def __argsPlatformInstagram():
-    # 
-    # instagram needs to login before downloading
-    # 
-    return [_aCookiesFromBrowser, _aBrowserChrome]
+    return []
 
 
 # 

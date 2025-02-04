@@ -6,7 +6,7 @@ def main():
     print()
     from counter import whileInputValidOptionDict
     option = whileInputValidOptionDict({
-        book.uMudi: book.reserveMudi,
+        **{usecase : book.reserveMudi for usecase in book.usecasesMudi},
         **{usecase : book.reserveRemove for usecase in book.usecasesRemove},
         **{usecase : book.reserveDownload for usecase in book.usecasesDownload},
         **{usecase : book.reserveConvert for usecase in book.usecasesConvert},

@@ -10,11 +10,11 @@ import datetime
 # 
 stdoutMessageOf = lambda args: subprocess.run(args, capture_output=True).stdout.decode().strip() # discard \n
 splitFilename = lambda source: os.path.splitext(source) # 'name.ext' -> ('name', '.ext')
+nameFromPath = lambda path: splitFilename(os.path.basename(path))[0]
 walking = lambda location: next(os.walk(location))
-getCwdDirectories = lambda : walking('.')[1]
-getCwdFiles = lambda : walking('.')[2]
-containsFile = lambda name: name in getCwdFiles()
-matchCwdDirectory = lambda path : re.match('^' + os.getcwd(), path)
+getDirectories = lambda parent = '': walking(parent if parent else '.')[1]
+getFiles = lambda parent = '': walking(parent if parent else '.')[2]
+matchCwdDirectory = lambda path, parent = '' : re.match('^' + os.path.join(os.getcwd(), parent), path)
 
 timedeltaFromSeconds = lambda seconds: datetime.timedelta(seconds=seconds)
 formatHourMinuteSecond = lambda seporator: f'%H{seporator}%M{seporator}%S'
@@ -39,12 +39,12 @@ findingTimeText = lambda source: re.search(r"[0-9]{1,2}:[0-9]{2}:[0-9]{2}", sour
 # 
 # 
 def renameIfExist(filename: str, output: str):
-    if filename in getCwdFiles():
+    if filename in getFiles():
         return os.rename(filename, output)
 
-def extensionsForFilename(name: str):
+def extensionsForFilename(name: str, parent: str = ''):
     extensions = []
-    for file in getCwdFiles():
+    for file in getFiles(parent):
         nameExt = splitFilename(file)
         if nameExt[0] == name: extensions.append(nameExt[1][1:])
     return extensions
@@ -58,12 +58,6 @@ def translateExtAudioOrVideo(ext: str, onAudio, onVideo):
         f'supported audio extension: {generalAudioExts}\n'
         f'supported video extension: {generalVideoExts}\n'
     )
-
-def pathContainsCwdDirectory(path: str):
-    match = matchCwdDirectory(path)
-    if match:
-        from shlex import split
-        return split(path[match.end() + 1:])[0]
 
 def chdirAndShowChildren(location: str, successShow: bool = False) -> bool: # return true when choosen
     import subprocess
@@ -103,6 +97,7 @@ def removeFilesContain(regex: bool, pattern: str, includeSubDir: bool, sign):
 # assert children are files
 def _foreachFile(translate, children):
     for child in children:
+        print(f'travel file: {child}')
         translate(child)
 
 # assert children are directories
@@ -122,14 +117,10 @@ def foreachFile(translate, parent: str = '.'):
 
 
 def foreachFileNestBreadthFirst(translate, parent: str = '.'):
-    from book import printDemo
     def nesting(dir: str, children: list):
         print(f'open {dir} ...')
-        if children[2]:
-            printDemo('travel files:', children[2])
-            _foreachFile(translate, children[2])
-        if children[1]:
-            _foreachDirectory(nesting, children[1])
+        if children[2]: _foreachFile(translate, children[2])
+        if children[1]: _foreachDirectory(nesting, children[1])
     
     print(f'nesting on {os.path.abspath(parent)} ...')
     nesting(parent, walking(parent))
