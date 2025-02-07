@@ -13,7 +13,7 @@ def main():
         **{usecase : book.reserveShow for usecase in book.usecasesShow},
         **{usecase : book.reserveThumbnail for usecase in book.usecasesThumbnail},
     })
-    option[1](option[0])
+    if option: option[1](option[0])
     print()
 
 main()

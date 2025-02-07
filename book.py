@@ -12,10 +12,10 @@ uMudiCopyMusic = 'mudi copy music'
 uMudiCopyMusicInPath = 'mudi copy music in path'
 uRemoveFilesNameMatchPattern = 'remove files name match pattern (sign before remove)'
 uRemoveFilesNameMatchPatternNoCheck = 'remove files name match pattern (without check)'
-uDowloadStream = 'download stream'
-uDowloadMp3 = 'download mp3'
-uDowloadMp3InPath = 'download mp3 in path'
-uDowloadMovOrMp4ToMov = 'download mov or mp4->mov'
+uDowloadStreamByUrl = 'download stream by url'
+uDowloadMp3ByUrl = 'download mp3 by url'
+uDowloadMp3ByUrlInPath = 'download mp3 by url in path'
+uDowloadMovOrMp4ToMov = 'download mov or mp4->mov by url'
 uConvertStream = 'convert stream'
 uConvertAllStream = 'convert all streams in path (sign to retain origin)'
 uConvertAllStreamUpdate = 'convert all streams in path (remove transformed directly)'
@@ -36,8 +36,8 @@ usecasesRemove = (
 )
 
 usecasesDownload = (
-    uDowloadStream,
-    uDowloadMp3, uDowloadMp3InPath,
+    uDowloadStreamByUrl,
+    uDowloadMp3ByUrl, uDowloadMp3ByUrlInPath,
     uDowloadMovOrMp4ToMov
 )
 
@@ -78,9 +78,9 @@ def reserveRemove(u: str):
 
 def reserveDownload(u: str):
     from counter import counterDownload, counterDownloadAOrBToA
-    if u == uDowloadStream: return counterDownload('')
-    if u == uDowloadMp3: return counterDownload(mp3, True)
-    if u == uDowloadMp3InPath: return counterDownload(mp3, False)
+    if u == uDowloadStreamByUrl: return counterDownload('', False)
+    if u == uDowloadMp3ByUrl: return counterDownload(mp3, True)
+    if u == uDowloadMp3ByUrlInPath: return counterDownload(mp3, False)
     if u == uDowloadMovOrMp4ToMov: return counterDownloadAOrBToA(mov, mp4)
 
 def reserveConvert(u: str):

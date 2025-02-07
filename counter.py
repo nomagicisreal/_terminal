@@ -58,9 +58,11 @@ def whileInputValidOptionDict(options: dict):
     
     from book import printDemo
     printDemo('available options:', lines)
-    action = names[int(whileInputValidOption(indexes, 'option'))-1]
-    print(f'continue to {action} ... ')
-    return (action, options[action])
+    index = whileInputValidOption(indexes, 'option')
+    if index:
+        action = names[int(index)-1]
+        print(f'continue to {action} ... ')
+        return (action, options[action])
 
 def whileInputValidFile(title: str, parent: str = '', defaultForOnlyExt: bool = False):
     from os import path
@@ -265,13 +267,18 @@ def counterDownload(ext: str, askLocationEverytime: bool):
     if askLocationEverytime:
         def downloading():
             whileEnsureLocation()
-            download(whileInputValidUrl(), ext if ext else inputOrDefault('extension', mp4))
+            download(
+                whileInputValidUrl(),
+                ext if ext else inputOrDefault('extension', mp4),
+                # needsCookie=True
+            )
         return whileNotRejectToContinue(downloading, task='download')
     
     whileNotRejectToContinue(
         lambda: download(
             whileInputValidUrl(),
             ext if ext else inputOrDefault('extension', mp4),
+            # needsCookie=True
         ),
         task='downloading'
     )
