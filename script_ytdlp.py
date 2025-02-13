@@ -127,7 +127,7 @@ def __argsPlatformYoutube(url: str):
     # 
     
     # 
-    result = [_aEmbedThumbnail, _aCookiesFromBrowser, _aBrowserChrome]
+    result = [_aEmbedThumbnail]
     if _searchAppendedPlaylistIdOf(url):
         from counter import whileInputReject
         if whileInputReject(f"download all the other video in playlist: '{infoPlaylistTitleOf(url)}'? "):

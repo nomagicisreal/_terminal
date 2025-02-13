@@ -78,6 +78,10 @@ def copyMusicTo(source: str, path: str):
 
 # 
 # in python, only get 2025 dancing music
+# TODO: exluding tags to caculate then export audio
+# 
+
+
 # TODO: in flutter,
 # - basic audio set management
 #   - demo entire audio set (id, title, tags)
