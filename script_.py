@@ -8,6 +8,7 @@ import datetime
 # lambda
 # 
 # 
+printDevider = lambda message, size = 50, fill = '-': print(message.center(size, fill))
 stdoutMessageOf = lambda args: subprocess.run(args, capture_output=True).stdout.decode().strip() # discard \n
 splitFilename = lambda source: os.path.splitext(source) # 'name.ext' -> ('name', '.ext')
 nameFromPath = lambda path: splitFilename(os.path.basename(path))[0]
@@ -67,7 +68,7 @@ def chdirAndShowChildren(location: str, successShow: bool = False) -> bool: # re
         return True
     except FileNotFoundError:
         print(f'location not found: {location}')
-        print('available directories'.center(50, '-'))
+        printDevider('available directories')
         subprocess.call(['ls', '-d'])
         return False
 

@@ -143,42 +143,57 @@ def counterRemoveFilesMatch(signBeforeRemove: bool = True):
 # 
 # 
 def counterMudiDownloadPlaylist():
-    from script_mudi import hasPermission, appendCsvThenDownloadPlaylist
-    if hasPermission():
+    from script_mudi import passPermission, appendCsvThenDownloadPlaylist
+    if passPermission():
         appendCsvThenDownloadPlaylist(
             whileInputValidUrl('playlist url: '),
         )
 
-def counterMudiCopy():
-    from script_mudi import hasPermission, copyMusicTo
-    if hasPermission():
+def counterMudiCopyTo(inPath: bool = False):
+    from script_mudi import passPermission
+    if passPermission():
+        from script_mudi import copyMusicTo, file_parent
+
+        if inPath:
+            while True:
+                path = whileInputNotEmpty('path: ')
+                whileNotRejectToContinue(
+                    lambda: copyMusicTo(
+                        whileInputValidFile(
+                            'youtube id: ',
+                            parent=file_parent,
+                            defaultForOnlyExt=True,
+                        ),
+                        path,
+                    ),
+                    task=f'copy music into {path}'
+                )
+                if whileInputYorN('y for switch path, n for exit'): continue
+                return
+
         whileNotRejectToContinue(
             lambda: copyMusicTo(
-                whileInputValidFile('youtube id: ', parent='test', defaultForOnlyExt=True),
+                whileInputValidFile(
+                    'youtube id: ',
+                    parent=file_parent,
+                    defaultForOnlyExt=True,
+                ),
                 whileInputNotEmpty('path: ')
             ),
             task='copy music'
         )
-        
-def counterMudiCopyInPath():
-    from script_mudi import hasPermission, copyMusicTo, file_parent
-    if hasPermission():
-        while True:
-            path = whileInputNotEmpty('path: ')
-            whileNotRejectToContinue(
-                lambda: copyMusicTo(
-                    whileInputValidFile(
-                        'youtube id: ',
-                        parent=file_parent,
-                        defaultForOnlyExt=True
-                    ),
-                    path,
-                ),
-                task=f'copy music into {path}'
-            )
-            if whileInputYorN('y for switch path, n for exit'): continue
-            return
     
+def counterMudiCopyToByTags():
+    from script_mudi import passPermission, copyMusicToByTags
+    if passPermission():
+        whileNotRejectToContinue(
+            lambda: copyMusicToByTags(
+                # tags
+                whileInputNotEmpty('path: '),
+                # whileInputNotEmpty
+            ),
+            task='copy musics with tags'
+        )
 
 
 # 

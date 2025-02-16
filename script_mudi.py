@@ -7,8 +7,8 @@
 
 file_dictionary = 'my_music_dictionary.csv'
 file_location = '/Users/nomisal/Downloads/music'
-# file_parent = 'repo'
-file_parent = 'test'
+file_parent = 'repo'
+# file_parent = 'test'
 
 from script_ytdlp import fieldId, fieldTitle, fieldPlaylistTitle
 encoding = 'utf-8'
@@ -19,7 +19,7 @@ formatFile = f'{file_parent}/{fieldId}'
 #     writer = csv.DictWriter(file, fieldnames=formatCsvField)
 #     writer.writeheader()
 
-def hasPermission():
+def passPermission():
     from os import chdir, path
     chdir(file_location)
     print(f'now in {file_location}...\n')
@@ -28,6 +28,13 @@ def hasPermission():
         return False
     return True
 
+# 
+# 
+# 
+# append csv
+# 
+# 
+# 
 def appendCsvThenDownloadPlaylist(url: str):
     from script_ytdlp import infoOf, download
     appendCsv(infoOf(url, formatInfoString,
@@ -58,22 +65,144 @@ def appendCsv(snapshot: str):
     
     print('finished\n')
 
-def readCsvForTitle(id: str):
+# 
+# 
+# 
+# read csv
+# 
+# 
+# 
+def searchCsv(id: str = '', tagsSet: list = []):
+    if id and tagsSet:
+        raise Exception(
+            'you must provide only id or only tags\n'
+            f'instead, you both provide id({id}) and tags({tagsSet})'
+        )
+    if not id and not tagsSet:
+        raise Exception('you must provide id or tags to read for title')
+    
+    with open(file_dictionary, 'r', encoding=encoding) as file:
+        from csv import reader
+        row = reader(file)
+        next(row)
+
+        # return only title
+        if id:
+            for item in row:
+                if item[0] == id: return item[2]
+            print(f'no music with id({id}) in {file_dictionary}')
+        
+        # return rows with tags
+        if tagsSet:
+            items = []
+            for item in row:
+                for tags in tagsSet:
+                    if tags == item[1]:
+                        items.append(item)
+                        continue
+            return items
+
+def demoTagsSet(tagsSet: list, description: str = 'all'):
+    if not tagsSet: print('the tagsSet is empty')
+    from script_ import printDevider
+    printDevider(f'{description} tags')
+    print('\n'.join(tagsSet))
+    printDevider(f'{description} tags')
+
+def demoAndGetTagsSet():
+    tagsSet = []
     with open(file_dictionary, 'r', encoding=encoding) as file:
         from csv import reader
         r = reader(file)
         next(r)
         for item in r:
-            if item[0] == id: return item[2]
+            tags = item[1]
+            if tags in tagsSet: continue
+            tagsSet.append(tags)
+    
+    tagsSet.sort()
+    demoTagsSet(tagsSet)
+    return tagsSet
 
-    raise Exception(f'{id}.mp3 not found in {file_location}/repo')
+def filterTags():
+    remain = demoAndGetTagsSet()
+    excluded = []
+    print('USAGE:')
+    print('1. leave empty and press enter to keep the current tags set as the result')
+    print('2. input a pattern to remove all tags containing it')
+    print("3. input patterns connected by ',' to remove all tags containing one of them")
 
+    def filter(pattern, remain: list, excluded: list):
+        result = remain.copy()
+        for tags in remain:
+            if pattern in tags:
+                print(f'remove tags: {tags}')
+                result.remove(tags)
+                excluded.append(tags)
+        if len(remain) == len(result): return False
+        remain.clear()
+        remain.extend(result)
+        return True
+
+    while True:
+        pattern: str = input('\ntags pattern: ')
+        if not pattern: return remain
+        patternList = pattern.split(',')
+        removeSomething = False
+        for pattern in patternList:
+            removeAnything = filter(pattern, remain, excluded)
+            if removeAnything:
+                removeSomething = True
+                continue
+            print(f"there is no tags contain '{pattern}'")
+
+        if removeSomething:
+            demoTagsSet(remain, 'remain')
+            print(f"\nremoved tags: {','.join(excluded)}")
+
+
+# 
+# 
+# 
+# 
+# overall
+# 
+# 
+# 
+# 
 def copyMusicTo(source: str, path: str):
     import os
-    if not os.path.exists(path): os.mkdir(path)
+    import os.path as p
+    if not p.exists(path): os.mkdir(path)
     from shutil import copy2
     from script_ import nameFromPath
-    copy2(source, f'{path}/{readCsvForTitle(nameFromPath(source))}.mp3')
+    copy2(
+        source,
+        p.join(path, f'{searchCsv(id=nameFromPath(source))}.mp3'.replace('/', '|'))
+    )
+
+def copyMusicToByTags(path: str):
+    import os
+    import os.path as p
+    if not p.exists(path): os.mkdir(path)
+    tagsSet = filterTags()
+    from script_ import printDevider
+    printDevider(f'get tags set: {tagsSet}')
+    items = searchCsv(tagsSet=tagsSet)
+    printDevider(f'found items in {file_dictionary}')
+    for item in items: print(','.join(item))
+    print('copy on process...\n')
+
+    from shutil import copy2
+    for item in items:
+        parent = p.join(path, item[1])
+        if not p.exists(parent): os.mkdir(parent)
+        copy2(
+            p.join(file_parent, f'{item[0]}.mp3'),
+            p.join(parent, f'{item[2]}.mp3'.replace('/', '|')),
+        )
+
+    print('copy finished!')
 
 
 # 

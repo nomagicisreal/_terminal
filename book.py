@@ -7,9 +7,10 @@
 # 
 # 
 # 
-uMudiDownloadPlaylist = 'mudi download playlist'
+uMudiDownloadPlaylist = 'mudi download playlist by url'
 uMudiCopyMusic = 'mudi copy music'
-uMudiCopyMusicInPath = 'mudi copy music in path'
+uMudiCopyMusicTo = 'mudi copy music to path'
+uMudiCopyMusicToByTags = 'mudi copy music to path by tags'
 uRemoveFilesNameMatchPattern = 'remove files name match pattern (sign before remove)'
 uRemoveFilesNameMatchPatternNoCheck = 'remove files name match pattern (without check)'
 uDowloadStreamByUrl = 'download stream by url'
@@ -28,7 +29,7 @@ uThumbnailCopyToAnother = 'copy thumbnail from stream to stream'
 
 usecasesMudi = (
     uMudiDownloadPlaylist,
-    uMudiCopyMusic, uMudiCopyMusicInPath,
+    uMudiCopyMusic, uMudiCopyMusicTo, uMudiCopyMusicToByTags,
 )
 
 usecasesRemove = (
@@ -65,10 +66,11 @@ usecasesThumbnail = (
 # 
 # 
 def reserveMudi(u: str):
-    from counter import counterMudiDownloadPlaylist, counterMudiCopy, counterMudiCopyInPath
+    from counter import counterMudiDownloadPlaylist, counterMudiCopyTo, counterMudiCopyToByTags
     if u == uMudiDownloadPlaylist: return counterMudiDownloadPlaylist()
-    if u == uMudiCopyMusic: return counterMudiCopy()
-    if u == uMudiCopyMusicInPath: return counterMudiCopyInPath()
+    if u == uMudiCopyMusic: return counterMudiCopyTo()
+    if u == uMudiCopyMusicTo: return counterMudiCopyTo(inPath=True)
+    if u == uMudiCopyMusicToByTags: return counterMudiCopyToByTags()
 
 def reserveRemove(u: str):
     from counter import counterRemoveFilesMatch
