@@ -83,6 +83,7 @@ import re
 isOnYoutube = lambda url: re.search(r'^https://(www\.)?(youtube\.com|youtu\.be)/', url)
 isOnInstagram = lambda url: re.search(r'^https://(www\.)?(instagram\.com)/', url)
 
+isYoutubeVideoUrlWithPlaylist = lambda url: re.search(r'list=', url)
 _searchAppendedPlaylistIdOf = lambda url: re.search(r'&list=([\w-]+)', url)
 searchVideoIdOf = lambda url: re.search(r'(?:v=|\/)([\w-]{11})', url).group(1)
 
@@ -100,8 +101,8 @@ searchVideoIdOf = lambda url: re.search(r'(?:v=|\/)([\w-]{11})', url).group(1)
 _argsCookies = lambda needs: [_aCookiesFromBrowser, _aBrowserChrome] if needs else []
 
 def _argsPlatform(url: str) -> list:
-    if isOnYoutube(url): return __argsPlatformYoutube(url)
-    if isOnInstagram(url): return __argsPlatformInstagram(url)
+    if isOnYoutube(url): return _argsPlatformYoutube(url)
+    if isOnInstagram(url): return _argsPlatformInstagram(url)
     raise Exception(
         f'unimplement url: {url}\n'
         f'only implement youtube, instagram for now'
@@ -123,7 +124,7 @@ def _argsExtension(ext: str) -> str:
 # case 2: https://www.youtube.com/playlist?list=...
 # case 3: https://www.youtube.com/watch?v=...&list=...&index=...
 # 
-def __argsPlatformYoutube(url: str):
+def _argsPlatformYoutube(url: str):
     # 
     
     # 
@@ -135,7 +136,7 @@ def __argsPlatformYoutube(url: str):
 
     return result
 
-def __argsPlatformInstagram():
+def _argsPlatformInstagram():
     return []
 
 

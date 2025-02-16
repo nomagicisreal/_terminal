@@ -12,7 +12,8 @@ file_parent = 'repo'
 
 from script_ytdlp import fieldId, fieldTitle, fieldPlaylistTitle
 encoding = 'utf-8'
-formatInfoString = f'{fieldId},{fieldPlaylistTitle},[{fieldTitle}]' # playlist title as tags
+formatInfoString = f'{fieldId},,[{fieldTitle}]'
+formatInfoStringForPlaylist = f'{fieldId},{fieldPlaylistTitle},[{fieldTitle}]'
 formatCsvField = ['id', 'tags', 'title'] 
 formatFile = f'{file_parent}/{fieldId}'
 # with open('my_music.csv', 'w', newline='', encoding='utf-8') as file:
@@ -35,19 +36,42 @@ def passPermission():
 # 
 # 
 # 
-def appendCsvThenDownloadPlaylist(url: str):
-    from script_ytdlp import infoOf, download
-    appendCsv(infoOf(url, formatInfoString,
-        # needsCookie=True
-    ).split('\n'))
-    
+def appendCsvThenDownload(url: str, requirePlaylist: bool):
+    from script_ytdlp import infoOf, download, isYoutubeVideoUrlWithPlaylist
+    urlContainPlaylist = isYoutubeVideoUrlWithPlaylist(url)
+    info = ''
+    if requirePlaylist:
+        if not urlContainPlaylist:
+            raise Exception(
+                'require youtube url containing playlist id\n' +
+                'format 1: https://www.youtube.com/playlist?list=...\n' + 
+                'format 2: https://www.youtube.com/watch?v=...&list=...&index=...'
+            )
+        info = infoOf(url, formatInfoStringForPlaylist,
+            # needsCookie=True
+        ).split('\n')
+        
+    else:
+        if urlContainPlaylist:
+            raise Exception(
+                'require youtube url continaing only video id\n' +
+                'invalid format 1: https://www.youtube.com/playlist?list=...\n' + 
+                'invalid format 2: https://www.youtube.com/watch?v=...&list=...&index=...'
+            )
+
+        from counter import whileInputNotEmpty
+        info = [infoOf(url, formatInfoString,
+            # needsCookie=True
+        ).replace(',,[', f",{whileInputNotEmpty('tags for audio: ').strip()},[")]
+
+    appendCsv(info)
     from book import mp3
     download(url, mp3, formatFile,
         # needsCookie=True
     )
     
 
-def appendCsv(snapshot: str):
+def appendCsv(snapshot: list):
     print(f'append on {file_dictionary}...')
     with open(file_dictionary, 'a', newline='', encoding=encoding) as file:
         from csv import writer
@@ -89,7 +113,9 @@ def searchCsv(id: str = '', tagsSet: list = []):
         # return only title
         if id:
             for item in row:
-                if item[0] == id: return item[2]
+                if item[0] == id:
+                    print(f'finding items in {file_dictionary}')
+                    return item[2]
             print(f'no music with id({id}) in {file_dictionary}')
         
         # return rows with tags
@@ -100,16 +126,15 @@ def searchCsv(id: str = '', tagsSet: list = []):
                     if tags == item[1]:
                         items.append(item)
                         continue
+            from script_ import demoItems
+            demoItems(
+                [','.join(item) for item in items],
+                messageNoItem=f'there is no music found in {file_dictionary} with any tag in {tagsSet}',
+                dividerTitle=f'found items in {file_dictionary}'
+            )
             return items
 
-def demoTagsSet(tagsSet: list, description: str = 'all'):
-    if not tagsSet: print('the tagsSet is empty')
-    from script_ import printDevider
-    printDevider(f'{description} tags')
-    print('\n'.join(tagsSet))
-    printDevider(f'{description} tags')
-
-def demoAndGetTagsSet():
+def getTagsSetSorted():
     tagsSet = []
     with open(file_dictionary, 'r', encoding=encoding) as file:
         from csv import reader
@@ -121,45 +146,52 @@ def demoAndGetTagsSet():
             tagsSet.append(tags)
     
     tagsSet.sort()
-    demoTagsSet(tagsSet)
     return tagsSet
 
-def filterTags():
-    remain = demoAndGetTagsSet()
-    excluded = []
-    print('USAGE:')
-    print('1. leave empty and press enter to keep the current tags set as the result')
-    print('2. input a pattern to remove all tags containing it')
-    print("3. input patterns connected by ',' to remove all tags containing one of them")
+def filterTags(exclusive: bool, whileInputNotEmpty, whileInputReject):
+    verb = 'exclude' if exclusive else 'include'
+    print(
+        '\nUSAGE:\n' +
+        f'1. input a pattern to {verb} all tags containing it\n' +
+        f"2. input patterns connected by ',' to {verb} all tags containing one of them\n"
+    )
+    remain = getTagsSetSorted()
+    target = []
 
-    def filter(pattern, remain: list, excluded: list):
+    def filter(pattern, remain: list, target: list):
         result = remain.copy()
         for tags in remain:
             if pattern in tags:
-                print(f'remove tags: {tags}')
                 result.remove(tags)
-                excluded.append(tags)
+                target.append(tags)
         if len(remain) == len(result): return False
         remain.clear()
         remain.extend(result)
         return True
 
+    print(f'overall tags: {remain}\n')
+    values = (lambda: remain) if exclusive else (lambda: target)
+    dividerTitle = 'remain tags' if exclusive else 'included tags'
+    from script_ import demoItems
     while True:
-        pattern: str = input('\ntags pattern: ')
-        if not pattern: return remain
+        pattern: str = whileInputNotEmpty('tags pattern: ')
         patternList = pattern.split(',')
-        removeSomething = False
+        matchSomething = False
         for pattern in patternList:
-            removeAnything = filter(pattern, remain, excluded)
-            if removeAnything:
-                removeSomething = True
+            matchAnything = filter(pattern, remain, target)
+            if matchAnything:
+                matchSomething = True
                 continue
-            print(f"there is no tags contain '{pattern}'")
+            print(f"there is no tags contain '{pattern}'\n{remain=}")
 
-        if removeSomething:
-            demoTagsSet(remain, 'remain')
-            print(f"\nremoved tags: {','.join(excluded)}")
-
+        if matchSomething: demoItems(values(), dividerTitle)
+        if whileInputReject('\ncontinue selecting tags?'):
+            result = values()
+            if not result:
+                print("you're not select any tags, please select some tags")
+                continue
+            print(f'selected tags: {result}')
+            return result
 
 # 
 # 
@@ -172,8 +204,9 @@ def filterTags():
 # 
 def copyMusicTo(source: str, path: str):
     import os
+    os.makedirs(path, exist_ok=True)
+
     import os.path as p
-    if not p.exists(path): os.mkdir(path)
     from shutil import copy2
     from script_ import nameFromPath
     copy2(
@@ -181,18 +214,14 @@ def copyMusicTo(source: str, path: str):
         p.join(path, f'{searchCsv(id=nameFromPath(source))}.mp3'.replace('/', '|'))
     )
 
-def copyMusicToByTags(path: str):
+def copyMusicToByTags(path: str, whileInputNotEmpty, whileInputReject, exclusive: bool=False):
     import os
-    import os.path as p
-    if not p.exists(path): os.mkdir(path)
-    tagsSet = filterTags()
-    from script_ import printDevider
-    printDevider(f'get tags set: {tagsSet}')
+    os.makedirs(path, exist_ok=True)
+    tagsSet = filterTags(exclusive, whileInputNotEmpty, whileInputReject)
     items = searchCsv(tagsSet=tagsSet)
-    printDevider(f'found items in {file_dictionary}')
-    for item in items: print(','.join(item))
-    print('copy on process...\n')
 
+    print('copy on process...')
+    import os.path as p
     from shutil import copy2
     for item in items:
         parent = p.join(path, item[1])
@@ -201,8 +230,7 @@ def copyMusicToByTags(path: str):
             p.join(file_parent, f'{item[0]}.mp3'),
             p.join(parent, f'{item[2]}.mp3'.replace('/', '|')),
         )
-
-    print('copy finished!')
+    print('copy finished!\n')
 
 
 # 

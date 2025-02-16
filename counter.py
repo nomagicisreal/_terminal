@@ -142,14 +142,15 @@ def counterRemoveFilesMatch(signBeforeRemove: bool = True):
 # for mudi
 # 
 # 
-def counterMudiDownloadPlaylist():
-    from script_mudi import passPermission, appendCsvThenDownloadPlaylist
+def counterMudiDownload(requirePlaylist: bool):
+    from script_mudi import passPermission, appendCsvThenDownload
     if passPermission():
-        appendCsvThenDownloadPlaylist(
-            whileInputValidUrl('playlist url: '),
+        appendCsvThenDownload(
+            whileInputValidUrl(f"{'playlist' if requirePlaylist else 'audio'} url: "),
+            requirePlaylist
         )
 
-def counterMudiCopyTo(inPath: bool = False):
+def counterMudiCopyTo(inPath: bool):
     from script_mudi import passPermission
     if passPermission():
         from script_mudi import copyMusicTo, file_parent
@@ -190,7 +191,8 @@ def counterMudiCopyToByTags():
             lambda: copyMusicToByTags(
                 # tags
                 whileInputNotEmpty('path: '),
-                # whileInputNotEmpty
+                whileInputNotEmpty,
+                whileInputReject
             ),
             task='copy musics with tags'
         )

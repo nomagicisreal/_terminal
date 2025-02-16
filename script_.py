@@ -30,6 +30,12 @@ findingTimeText = lambda source: re.search(r"[0-9]{1,2}:[0-9]{2}:[0-9]{2}", sour
 #
 # 
 # 
+def demoItems(items: list, dividerTitle: str, messageNoItem: str = ''):
+    if not items: print(messageNoItem)
+    from script_ import printDevider
+    printDevider(dividerTitle)
+    print('\n'.join(items))
+    printDevider('')
 
 
 # 
