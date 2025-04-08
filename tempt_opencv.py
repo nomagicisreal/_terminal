@@ -1,12 +1,15 @@
 
 # import cv2
-# from script_os import foreachFiles, path, os
+# from script_ import foreachFile, os
+
+# join = lambda parent, child: os.path.join(parent, child)
+
 
 # cwd = os.getcwd()
 # def cropping(child: str):
-#     img = cv2.imread(child)
-#     crop_img = img[330:1850, 50:1200]
-#     location = path.join('Photos', path.basename(child))
-#     cv2.imwrite(location, crop_img) # save after create folder
+#     img = cv2.imread(os.path.join('tmp', child), cv2.IMREAD_UNCHANGED)
+#     crop_img = img[350:1850, 850:2350] # 
+#     cv2.imwrite(os.path.join('cropped', child), crop_img)
 
-# foreachFiles(cropping, parent='Photos-001')
+# # os.mkdir('cropped') # must create folder before save
+# foreachFile(cropping, parent='tmp')

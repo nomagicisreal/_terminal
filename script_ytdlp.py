@@ -103,10 +103,11 @@ _argsCookies = lambda needs: [_aCookiesFromBrowser, _aBrowserChrome] if needs el
 def _argsPlatform(url: str) -> list:
     if isOnYoutube(url): return _argsPlatformYoutube(url)
     if isOnInstagram(url): return _argsPlatformInstagram(url)
-    raise Exception(
-        f'unimplement url: {url}\n'
-        f'only implement youtube, instagram for now'
-    )
+    return [url]
+    # raise Exception(
+    #     f'unimplement url: {url}\n'
+    #     f'only implement youtube, instagram for now'
+    # )
 
 def _argsExtension(ext: str) -> str:
     from book import mp4, generalAudioExts, generalVideoExts

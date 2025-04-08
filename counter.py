@@ -192,7 +192,8 @@ def counterMudiCopyToByTags():
                 # tags
                 whileInputNotEmpty('path: '),
                 whileInputNotEmpty,
-                whileInputReject
+                whileInputReject,
+                inclusive=whileInputYorN('inclusive/exclusive?')
             ),
             task='copy musics with tags'
         )

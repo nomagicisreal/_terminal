@@ -148,8 +148,8 @@ def getTagsSetSorted():
     tagsSet.sort()
     return tagsSet
 
-def filterTags(exclusive: bool, whileInputNotEmpty, whileInputReject):
-    verb = 'exclude' if exclusive else 'include'
+def filterTags(inclusive: bool, whileInputNotEmpty, whileInputReject):
+    verb = 'include' if inclusive else 'exclude'
     print(
         '\nUSAGE:\n' +
         f'1. input a pattern to {verb} all tags containing it\n' +
@@ -170,8 +170,8 @@ def filterTags(exclusive: bool, whileInputNotEmpty, whileInputReject):
         return True
 
     print(f'overall tags: {remain}\n')
-    values = (lambda: remain) if exclusive else (lambda: target)
-    dividerTitle = 'remain tags' if exclusive else 'included tags'
+    values = (lambda: target) if inclusive else (lambda: remain)
+    dividerTitle = 'included tags' if inclusive else 'remain tags'
     from script_ import demoItems
     while True:
         pattern: str = whileInputNotEmpty('tags pattern: ')
@@ -214,10 +214,10 @@ def copyMusicTo(source: str, path: str):
         p.join(path, f'{searchCsv(id=nameFromPath(source))}.mp3'.replace('/', '|'))
     )
 
-def copyMusicToByTags(path: str, whileInputNotEmpty, whileInputReject, exclusive: bool=False):
+def copyMusicToByTags(path: str, whileInputNotEmpty, whileInputReject, inclusive: bool):
     import os
     os.makedirs(path, exist_ok=True)
-    tagsSet = filterTags(exclusive, whileInputNotEmpty, whileInputReject)
+    tagsSet = filterTags(inclusive, whileInputNotEmpty, whileInputReject)
     items = searchCsv(tagsSet=tagsSet)
 
     print('copy on process...')
