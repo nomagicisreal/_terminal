@@ -279,7 +279,8 @@ def counterConvertSingleImageToVideo():
     source = whileInputValidFile('your single image: ')
     exportVideoByImage(
         source=source,
-        second=inputOrDefault('video second', 1),
+        second=str(inputOrDefault('video second', 1)),
+        fps=str(inputOrDefault('fps', 30)),
         output=inputOrDefault('output name', f'{splitFilename(source)[0]}.mp4'),
     )
 

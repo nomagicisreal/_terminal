@@ -96,13 +96,13 @@ _exportFramedVideo = lambda cover, source, output: subprocess.call([
 ])
 
 # ffmpeg -loop 1 -i input.png -c:v libx264 -t 1 -pix_fmt yuv420p -vf "fps=25" output.mp4
-_exportVideoByImage = lambda source, second, output: subprocess.call([
+exportVideoByImage = lambda source, second, fps, output: subprocess.call([
     _aEnvironment, '-loop', '1', # loop infinitly
     _aInput, source,
     '-c:v', 'libx264',
     '-t', second, # limit time
     '-pix_fmt', 'yuv420p',
-    _aVideoFilter, 'fps=25',
+    _aVideoFilter, f'fps={fps}',
     output,
 ])
 
@@ -259,6 +259,3 @@ def convertAll(extIn: str, extOut: str, includeSubDir: bool, sign):
             convert(source, output)
     
     foreachFileNest(includeSubDir)(transforming)
-
-def exportVideoByImage(source: str, second: int, output: str):
-    _exportVideoByImage(source, str(second), output)

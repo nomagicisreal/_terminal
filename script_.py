@@ -10,7 +10,7 @@ import datetime
 # 
 printDevider = lambda message, size = 50, fill = '-': print(message.center(size, fill))
 stdoutMessageOf = lambda args: subprocess.run(args, capture_output=True).stdout.decode().strip() # discard \n
-splitFilename = lambda source: os.path.splitext(source) # 'name.ext' -> ('name', '.ext')
+splitFilename = lambda source: os.path.splitext(os.path.basename(source)) # 'name.ext' -> ('name', '.ext')
 nameFromPath = lambda path: splitFilename(os.path.basename(path))[0]
 walking = lambda location: next(os.walk(location))
 getDirectories = lambda parent = '': walking(parent if parent else '.')[1]
