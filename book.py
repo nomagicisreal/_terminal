@@ -20,6 +20,7 @@ uDowloadMovOrMp4ToMov = 'download mov or mp4->mov by url'
 uConvertStream = 'convert stream'
 uConvertAllStream = 'convert all streams in path (sign to retain origin)'
 uConvertAllStreamUpdate = 'convert all streams in path (remove transformed directly)'
+uConvertSingleImageToVideo = 'convert single image to video'
 uShowTotalDurationOfStreams = 'show total duration of all stream in path'
 uShowTotalDurationOfMp3s = 'show total duration of all mp3 in path'
 uThumbnailExport = 'export thumbnail from stream'
@@ -33,18 +34,19 @@ usecasesMudi = (
 )
 
 usecasesRemove = (
-    uRemoveFilesNameMatchPattern, uRemoveFilesNameMatchPatternNoCheck
+    uRemoveFilesNameMatchPattern, uRemoveFilesNameMatchPatternNoCheck,
 )
 
 usecasesDownload = (
     uDowloadStreamByUrl,
     uDowloadMp3ByUrl, uDowloadMp3ByUrlInPath,
-    uDowloadMovOrMp4ToMov
+    uDowloadMovOrMp4ToMov,
 )
 
 usecasesConvert = (
     uConvertStream,
     uConvertAllStream, uConvertAllStreamUpdate,
+    uConvertSingleImageToVideo,
 )
 
 usecasesShow = (
@@ -53,7 +55,7 @@ usecasesShow = (
 
 usecasesThumbnail = (
     uThumbnailExport, uThumbnailRemove,
-    uThumbnailAttatch, uThumbnailCopyToAnother
+    uThumbnailAttatch, uThumbnailCopyToAnother,
 )
 
 # 
@@ -86,10 +88,11 @@ def reserveDownload(u: str):
     if u == uDowloadMovOrMp4ToMov: return counterDownloadAOrBToA(mov, mp4)
 
 def reserveConvert(u: str):
-    from counter import counterConvertStream, counterConvertStreamAll
+    from counter import counterConvertStream, counterConvertStreamAll, counterConvertSingleImageToVideo
     if u == uConvertStream: return counterConvertStream()
     if u == uConvertAllStream: return counterConvertStreamAll()
     if u == uConvertAllStreamUpdate: return counterConvertStreamAll(signToRemove=False)
+    if u == uConvertSingleImageToVideo: return counterConvertSingleImageToVideo()
 
 def reserveShow(u: str):
     from counter import counterSumDuration

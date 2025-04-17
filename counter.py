@@ -272,6 +272,18 @@ def counterSumDuration(ext: str = ''):
             f'playing all {ext} takes {timedeltaFromSeconds(int(result[1]))}'
         )
 
+def counterConvertSingleImageToVideo():
+    from script_ffmpeg import exportVideoByImage
+    from script_ import splitFilename
+    whileEnsureLocation()
+    source = whileInputValidFile('your single image: ')
+    exportVideoByImage(
+        source=source,
+        second=inputOrDefault('video second', 1),
+        output=inputOrDefault('output name', f'{splitFilename(source)[0]}.mp4'),
+    )
+
+
 # 
 # 
 # 

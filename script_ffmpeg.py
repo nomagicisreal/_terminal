@@ -28,7 +28,7 @@ _aCodecCopy = 'copy'
 _aCompabilityAudioThumbnail = '-id3v2_version'
 _aCompabilityVideoThumbnail = '-disposition:v:1'
 _aVideoFrames = '-frames:v'
-# _aVideoFilter = '-vf'
+_aVideoFilter = '-vf'
 _argsMetadataAlbumArt = [
     '-metadata:s:v', 'title=Album Cover',
     '-metadata:s:v', 'comment=Cover (front)'
@@ -92,6 +92,17 @@ _exportFramedVideo = lambda cover, source, output: subprocess.call([
     _aMap, _aMap0v0, _aMap, _aMap0a, _aMap, _aMap1,
     _aCodec, _aCodecCopy,
     _aCompabilityVideoThumbnail, 'attached_pic',
+    output,
+])
+
+# ffmpeg -loop 1 -i input.png -c:v libx264 -t 1 -pix_fmt yuv420p -vf "fps=25" output.mp4
+_exportVideoByImage = lambda source, second, output: subprocess.call([
+    _aEnvironment, '-loop', '1', # loop infinitly
+    _aInput, source,
+    '-c:v', 'libx264',
+    '-t', second, # limit time
+    '-pix_fmt', 'yuv420p',
+    _aVideoFilter, 'fps=25',
     output,
 ])
 
@@ -248,3 +259,6 @@ def convertAll(extIn: str, extOut: str, includeSubDir: bool, sign):
             convert(source, output)
     
     foreachFileNest(includeSubDir)(transforming)
+
+def exportVideoByImage(source: str, second: int, output: str):
+    _exportVideoByImage(source, str(second), output)
