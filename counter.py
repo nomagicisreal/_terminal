@@ -222,9 +222,9 @@ def counterConvertVideoSpeedWithoutAudio():
     from script_ffmpeg import exportVideoSpeeded
     from script_ import splitFilename
     source = whileInputValidFile('your video: ')
-    speedUpOrSlowDown = whileInputYorN('speed up / slow down ?')
+    speedUpOrSlowDown = whileInputYorN('speed up / slow down? ')
     message = 'faster' if speedUpOrSlowDown else 'slower'
-    howMuch = whileInputNumeric(f"n times {message} ?")
+    howMuch = whileInputNumeric(f"n times {message}? ")
     exportVideoSpeeded(
         source=source,
         output=f'{splitFilename(source)[0]} ({howMuch}x {message}){splitFilename(source)[1]}',
