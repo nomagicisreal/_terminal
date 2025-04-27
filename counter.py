@@ -12,14 +12,12 @@ def inputOrDefault(title: str, option):
 # 
 # 
 # 
-# input while ...
+# while input ...
 # 
 # 
 # 
 def whileInputNotEmpty(message: str, interpretShellLikeString: bool = True):
-    # 
-    # shell like string be like "Songbird\ \(Atjazz\ Love\ Soul\ Remix\).mp3"
-    # 
+    # handle shell like string, for example "Songbird\ \(Atjazz\ Love\ Soul\ Remix\).mp3"
     while True:
         value = input(message)
         if value:
@@ -33,6 +31,12 @@ def whileInputYorN(question: str) -> bool:
         code = input(question + f" (y/n): ").upper()
         if code == 'Y': return True
         if code == 'N': return False
+
+def whileInputNumeric(question: str) -> int:
+    while True:
+        value = input(question + 'n = ')
+        if value.isnumeric(): return value
+        print('please input a numeric')
 
 def whileInputReject(question: str) -> bool:
     while True:
@@ -139,7 +143,11 @@ def counterRemoveFilesMatch(signBeforeRemove: bool = True):
 
 # 
 # 
-# for mudi
+# 
+# 
+# ------------------------counter for mudi
+# 
+# 
 # 
 # 
 def counterMudiDownload(requirePlaylist: bool):
@@ -201,67 +209,124 @@ def counterMudiCopyToByTags():
 
 # 
 # 
-# for ffmpeg
 # 
 # 
-def counterConvertStream(ext: str = ''):
-    from book import mp4
-    from script_ffmpeg import convert
+# ------------------------counter for ffmpeg
+# 
+# 
+# 
+# 
+def counterConvertVideoSpeedWithoutAudio():
     whileEnsureLocation()
-    convert(
-        whileInputValidFile('source: '),
-        ext if ext else inputOrDefault('output extension', mp4),
-        whileInputYorN('remove transformed? '),
+
+    from script_ffmpeg import exportVideoSpeeded
+    from script_ import splitFilename
+    source = whileInputValidFile('your video: ')
+    speedUpOrSlowDown = whileInputYorN('speed up / slow down ?')
+    message = 'faster' if speedUpOrSlowDown else 'slower'
+    howMuch = whileInputNumeric(f"n times {message} ?")
+    exportVideoSpeeded(
+        source=source,
+        output=f'{splitFilename(source)[0]} ({howMuch}x {message}){splitFilename(source)[1]}',
+        speedUp=howMuch if speedUpOrSlowDown else None,
+        slowDown=None if speedUpOrSlowDown else howMuch,
     )
 
-def counterConvertStreamAll(extIn: str = '', extOut: str = '', signToRemove: bool = True):
+def counterConvertVideoToGif():
+    whileEnsureLocation()
+
+    from script_ffmpeg import exportGifFromVideo
+    from script_ import splitFilename
+    source = whileInputValidFile('your video: ')
+    exportGifFromVideo(
+        source=source,
+        output=f'{splitFilename(source)[0]}.gif',
+        qualityHigh=not whileInputReject('quality high? '),
+        width=whileInputNumeric('width? ') if whileInputReject('default width? ') else -1,
+        height=whileInputNumeric('height? ') if whileInputReject('default height (keep aspect ratio)? ') else -1,
+        motionHeavy=whileInputReject('palette according to overall color? ')
+    )
+
+def counterConvertSingleImageToVideo():
+    whileEnsureLocation()
+
+    from script_ffmpeg import exportVideoByImage
+    from script_ import splitFilename
+    whileEnsureLocation()
+    source = whileInputValidFile('your single image: ')
+    exportVideoByImage(
+        source=source,
+        second=inputOrDefault('video second', '1'),
+        fps=inputOrDefault('fps', '30'),
+        output=inputOrDefault('output name', f'{splitFilename(source)[0]}.mp4'),
+    )
+
+def counterConvertStream():
+    whileEnsureLocation()
+
+    isSingle = whileInputYorN('convert single stream / convert all stream with same extension')
+    if isSingle:
+        from book import mp4
+        from script_ffmpeg import convert
+        return convert(
+            source=whileInputValidFile('source: '),
+            ext=inputOrDefault('output extension', mp4),
+            removeTransformed=whileInputYorN('remove transformed? '),
+        )
+        
     from book import mp4, mov
     from script_ffmpeg import convertAll
-    whileEnsureLocation()
-    convertAll(
-        extIn=extIn if extIn else inputOrDefault('input extension', mov),
-        extOut=extOut if extOut else inputOrDefault('output extension', mp4),
+    return convertAll(
+        extIn=inputOrDefault('input extension', mov),
+        extOut=inputOrDefault('output extension', mp4),
         includeSubDir=whileInputYorN('include subdirectories? '),
-        sign=lambda path: whileInputReject(f'sure to remove {path}? ') if signToRemove else None
+        sign=lambda path: whileInputReject(f'sure to remove {path}? ') if whileInputYorN('sign to remove?') else None
     )
 
-def counterThumbnailExport():
-    from script_ffmpeg import thumbnailExport
-    from book import png
+#
+#
+#
+def counterThumbnail():
     whileEnsureLocation()
-    thumbnailExport(
-        whileInputValidFile('source: '),
-        inputOrDefault('thumbnail extension', png)
-    )
 
-def counterThumbnailRemove():
-    from script_ffmpeg import thumbnailRemove
-    whileEnsureLocation()
-    thumbnailRemove(
-        whileInputValidFile('source: ')
-    )
-
-def counterThumbnailAttatch():
-    from script_ffmpeg import thumbnailAttach
-    whileEnsureLocation()
-    thumbnailAttach(
-        source=whileInputValidFile('source: '),
-        cover=whileInputValidFile('thumbnail: '),
-        rejectReplace=lambda: whileInputReject('replace exist thumnail?')
-    )
-
-def counterThumbnailCopyToAnother():
+    continuing = whileInputYorN('export thumbnail from stream?')
+    if continuing:
+        from script_ffmpeg import thumbnailExport
+        from book import png
+        return thumbnailExport(
+            whileInputValidFile('source: '),
+            inputOrDefault('thumbnail extension', png)
+        )
+    
+    continuing = whileInputYorN('remove thumbnail of stream?')
+    if continuing:
+        from script_ffmpeg import thumbnailRemove
+        return thumbnailRemove(whileInputValidFile('source: '))
+    
+    continuing = whileInputYorN('attatch thumbnail to stream from exist picture?')
+    if continuing:
+        from script_ffmpeg import thumbnailAttach
+        return thumbnailAttach(
+            source=whileInputValidFile('source: '),
+            cover=whileInputValidFile('thumbnail: '),
+            rejectReplace=lambda: whileInputReject('replace exist thumnail?')
+        )
+    
+    print('i assumed that you want to copy thumbnail from stream to stream')
     from script_ffmpeg import thumbnailCopyToAnother
-    whileEnsureLocation()
     thumbnailCopyToAnother(
         source=whileInputValidFile('source: '),
         target=whileInputValidFile('target: '),
         askForReplace=lambda: whileInputReject('replace exist thumnail?')
-    )
+    )    
 
+# 
+# 
+# 
 def counterSumDuration(ext: str = ''):
-    from script_ffprobe import sumDurations
     whileEnsureLocation()
+
+    from script_ffprobe import sumDurations
     result = sumDurations(ext if ext else inputOrDefault('to sum all ___ ', 'mp3'))
     if result:
         from book import printResultCount
@@ -272,23 +337,11 @@ def counterSumDuration(ext: str = ''):
             f'playing all {ext} takes {timedeltaFromSeconds(int(result[1]))}'
         )
 
-def counterConvertSingleImageToVideo():
-    from script_ffmpeg import exportVideoByImage
-    from script_ import splitFilename
-    whileEnsureLocation()
-    source = whileInputValidFile('your single image: ')
-    exportVideoByImage(
-        source=source,
-        second=str(inputOrDefault('video second', 1)),
-        fps=str(inputOrDefault('fps', 30)),
-        output=inputOrDefault('output name', f'{splitFilename(source)[0]}.mp4'),
-    )
-
 
 # 
 # 
 # 
-# for yt-dlp
+# ------------------------counter for yt-dlp
 # 
 # 
 # 
@@ -316,6 +369,7 @@ def counterDownload(ext: str, askLocationEverytime: bool):
     
 
 def counterDownloadAOrBToA(a: str, b: str):
-    from script_ytdlp import downloadAOrBToA
     whileEnsureLocation()
+
+    from script_ytdlp import downloadAOrBToA
     downloadAOrBToA(whileInputValidUrl(), extA=a, extB=b)

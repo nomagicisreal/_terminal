@@ -11,7 +11,6 @@ def main():
         **{usecase : book.reserveDownload for usecase in book.usecasesDownload},
         **{usecase : book.reserveConvert for usecase in book.usecasesConvert},
         **{usecase : book.reserveShow for usecase in book.usecasesShow},
-        **{usecase : book.reserveThumbnail for usecase in book.usecasesThumbnail},
     })
     if option: option[1](option[0])
     print()
