@@ -137,8 +137,8 @@ def _argsPlatformYoutube(url: str):
 
     return result
 
-def _argsPlatformInstagram():
-    return []
+def _argsPlatformInstagram(url: str):
+    return [url]
 
 
 # 
