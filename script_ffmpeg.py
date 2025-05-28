@@ -20,9 +20,11 @@ _aAudioNone = '-an'
 _aMap = '-map'
 _aMap0 = '0' # map all streams from first input
 _aMap1 = '1' # map all streams from second input
-_aMap0v0 = '0:v:0' # map from first input first video stream 
-_aMap0v1 = '0:v:1' # map from first input second video stream (usually embeded thumbnail)
-_aMap0a = '0:a' # map all audio
+_aMap0v = '0:v' # map all video from first input
+_aMap0a = '0:a' # map all audio from first input
+_aMap1a = '1:a'
+_aMap0v0 = '0:v:0' # map first video stream from first input
+_aMap0v1 = '0:v:1' # map second video stream from first input (usually embeded thumbnail)
 _aCodec = '-c'
 _aCodecCopy = 'copy'
 _aCompabilityAudioThumbnail = '-id3v2_version'
@@ -83,6 +85,14 @@ _exportAudioWithoutThumbnail = lambda source, output: subprocess.call([
 _exportVideoWithoutThumbnail = lambda source, output: subprocess.call([
     _aEnvironment, _aInput, source,
     _aMap, _aMap0v0, _aMap, _aMap0a,
+    _aCodec, _aCodecCopy,
+    output,
+])
+
+# ffmpeg -i input.mov -i input.mp3 -map 0:v -map 1:a -c copy output.mov
+_exportVideoWithAudio = lambda source, audio, output: subprocess.call([
+    _aEnvironment, _aInput, source, _aInput, audio,
+    _aMap, _aMap0v, _aMap, _aMap1a,
     _aCodec, _aCodecCopy,
     output,
 ])
@@ -237,6 +247,15 @@ def convertAll(extIn: str, extOut: str, includeSubDir: bool, sign):
             convert(source, output)
     
     foreachFileNest(includeSubDir)(transforming)
+
+
+def updateVideo(source: str, update: str, removeTransformed: bool):
+    from os.path import basename
+    output = f'new-{basename(source)}'
+    _exportVideoWithAudio(source, update, output)
+    if removeTransformed:
+        from os import rename
+        rename(output, source)
 
 
 # 

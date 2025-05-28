@@ -18,10 +18,11 @@ uDowloadMp3ByUrl = 'download mp3 by url'
 uDowloadMp3ByUrlInPath = 'download mp3 by url in path'
 uDowloadMovOrMp4ToMov = 'download mov or mp4->mov by url'
 uConvertStream = 'convert stream'
-uConvertStreamThumbnail = 'convert stream thumbnail'
 uConvertSingleImageToVideo = 'convert single image to video'
-uConvertVideoSpeed = 'convert video speed'
-uConvertVideoToGif = 'convert video to gif'
+uStreamThumbnailOperation = 'stream thumbnail operation'
+uUpdateVideoSpeed = 'update video speed'
+uUpdateVideoToGif = 'update video to gif'
+uUpdateVideoByAudio = 'update video by audio'
 uShowTotalDurationOfStreams = 'show total duration of all stream in path'
 uShowTotalDurationOfMp3s = 'show total duration of all mp3 in path'
 
@@ -43,9 +44,13 @@ usecasesDownload = (
 usecasesConvert = (
     uConvertStream,
     uConvertSingleImageToVideo,
-    uConvertStreamThumbnail,
-    uConvertVideoSpeed,
-    uConvertVideoToGif,
+    uStreamThumbnailOperation,
+)
+
+usecaseUpdate = (
+    uUpdateVideoSpeed,
+    uUpdateVideoToGif,
+    uUpdateVideoByAudio,
 )
 
 usecasesShow = (
@@ -82,12 +87,13 @@ def reserveDownload(u: str):
     if u == uDowloadMovOrMp4ToMov: return counterDownloadAOrBToA(mov, mp4)
 
 def reserveConvert(u: str):
-    from counter import counterConvertStream, counterConvertSingleImageToVideo, counterThumbnail, counterConvertVideoSpeedWithoutAudio, counterConvertVideoToGif
+    from counter import counterConvertStream, counterConvertSingleImageToVideo, counterThumbnailOperation, counterUpdateVideoSpeedWithoutAudio, counterUpdatetVideoToGif, counterUpdateVideo
     if u == uConvertStream: return counterConvertStream()
     if u == uConvertSingleImageToVideo: return counterConvertSingleImageToVideo()
-    if u == uConvertStreamThumbnail: return counterThumbnail()
-    if u == uConvertVideoSpeed: return counterConvertVideoSpeedWithoutAudio()
-    if u == uConvertVideoToGif: return counterConvertVideoToGif()
+    if u == uStreamThumbnailOperation: return counterThumbnailOperation()
+    if u == uUpdateVideoSpeed: return counterUpdateVideoSpeedWithoutAudio()
+    if u == uUpdateVideoToGif: return counterUpdatetVideoToGif()
+    if u == uUpdateVideoByAudio: return counterUpdateVideo()
 
 def reserveShow(u: str):
     from counter import counterSumDuration

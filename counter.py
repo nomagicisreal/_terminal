@@ -216,7 +216,7 @@ def counterMudiCopyToByTags():
 # 
 # 
 # 
-def counterConvertVideoSpeedWithoutAudio():
+def counterUpdateVideoSpeedWithoutAudio():
     whileEnsureLocation()
 
     from script_ffmpeg import exportVideoSpeeded
@@ -232,7 +232,7 @@ def counterConvertVideoSpeedWithoutAudio():
         slowDown=None if speedUpOrSlowDown else howMuch,
     )
 
-def counterConvertVideoToGif():
+def counterUpdatetVideoToGif():
     whileEnsureLocation()
 
     from script_ffmpeg import exportGifFromVideo
@@ -283,10 +283,20 @@ def counterConvertStream():
         sign=lambda path: whileInputReject(f'sure to remove {path}? ') if whileInputYorN('sign to remove?') else None
     )
 
+def counterUpdateVideo():
+    whileEnsureLocation()
+
+    from script_ffmpeg import updateVideo
+    return updateVideo(
+        source=whileInputValidFile('source: '),
+        update=whileInputValidFile('audio: '),
+        removeTransformed=whileInputYorN('remove transformed? '),
+    )
+
 #
 #
 #
-def counterThumbnail():
+def counterThumbnailOperation():
     whileEnsureLocation()
 
     continuing = whileInputYorN('export thumbnail from stream?')

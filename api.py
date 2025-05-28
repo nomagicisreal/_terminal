@@ -10,6 +10,7 @@ def main():
         **{usecase : book.reserveRemove for usecase in book.usecasesRemove},
         **{usecase : book.reserveDownload for usecase in book.usecasesDownload},
         **{usecase : book.reserveConvert for usecase in book.usecasesConvert},
+        **{usecase : book.reserveConvert for usecase in book.usecaseUpdate},
         **{usecase : book.reserveShow for usecase in book.usecasesShow},
     })
     if option: option[1](option[0])
