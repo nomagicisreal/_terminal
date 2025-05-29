@@ -38,6 +38,14 @@ def demoItems(items: list, dividerTitle: str, messageNoItem: str = ''):
     printDevider('')
 
 
+def isValidTime(time: str, format: str):
+    from datetime import datetime
+    try: 
+        datetime.strptime(time, format)
+        return True
+    except ValueError:
+        return False
+
 # 
 # 
 # 

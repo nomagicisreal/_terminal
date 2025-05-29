@@ -18,6 +18,7 @@ uDowloadMp3ByUrl = 'download mp3 by url'
 uDowloadMp3ByUrlInPath = 'download mp3 by url in path'
 uDowloadMovOrMp4ToMov = 'download mov or mp4->mov by url'
 uConvertStream = 'convert stream'
+uConvertVideoToImage = 'convert video to image'
 uConvertSingleImageToVideo = 'convert single image to video'
 uStreamThumbnailOperation = 'stream thumbnail operation'
 uUpdateVideoSpeed = 'update video speed'
@@ -43,6 +44,7 @@ usecasesDownload = (
 
 usecasesConvert = (
     uConvertStream,
+    uConvertVideoToImage,
     uConvertSingleImageToVideo,
     uStreamThumbnailOperation,
 )
@@ -86,13 +88,14 @@ def reserveDownload(u: str):
     if u == uDowloadMp3ByUrlInPath: return counterDownload(mp3, False)
     if u == uDowloadMovOrMp4ToMov: return counterDownloadAOrBToA(mov, mp4)
 
-def reserveConvert(u: str):
-    from counter import counterConvertStream, counterConvertSingleImageToVideo, counterThumbnailOperation, counterUpdateVideoSpeedWithoutAudio, counterUpdatetVideoToGif, counterUpdateVideo
+def reserveModification(u: str):
+    from counter import counterConvertStream, counterVideoToImage, counterConvertSingleImageToVideo, counterThumbnailOperation, counterUpdateVideoSpeedWithoutAudio, counterConvertVideoToGif, counterUpdateVideo
     if u == uConvertStream: return counterConvertStream()
+    if u == uConvertVideoToImage: return counterVideoToImage()
     if u == uConvertSingleImageToVideo: return counterConvertSingleImageToVideo()
     if u == uStreamThumbnailOperation: return counterThumbnailOperation()
     if u == uUpdateVideoSpeed: return counterUpdateVideoSpeedWithoutAudio()
-    if u == uUpdateVideoToGif: return counterUpdatetVideoToGif()
+    if u == uUpdateVideoToGif: return counterConvertVideoToGif()
     if u == uUpdateVideoByAudio: return counterUpdateVideo()
 
 def reserveShow(u: str):
@@ -139,6 +142,9 @@ aPipe = '|'
 aGrep = 'grep' # global regex print
 aWordCount = 'wc'
 aWordCountLine = '-l'
+
+# time format
+formatTime = '%H:%M:%S'
 
 
 # 

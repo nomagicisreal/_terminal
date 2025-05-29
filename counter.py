@@ -101,6 +101,16 @@ def whileInputValidUrl(title: str = 'url: '):
         if validate(url): return url
         print(f'invalid url: {url}')
 
+def whileInputValidTime(title: str = 'time: ', format: str = ''):
+    from script_ import isValidTime
+    from book import formatTime
+    format = format if format else formatTime
+    while True:
+        time = whileInputNotEmpty(title)
+        if isValidTime(time, format): return time
+        print(f'invalid ({time=}, {format=})')
+
+
 def whileEnsureLocation(successShow: bool = False) -> str:
     from os import getcwd
     from script_ import chdirAndShowChildren
@@ -216,23 +226,44 @@ def counterMudiCopyToByTags():
 # 
 # 
 # 
-def counterUpdateVideoSpeedWithoutAudio():
+
+#
+# convert
+#
+def counterConvertStream():
     whileEnsureLocation()
 
-    from script_ffmpeg import exportVideoSpeeded
-    from script_ import splitFilename
-    source = whileInputValidFile('your video: ')
-    speedUpOrSlowDown = whileInputYorN('speed up / slow down? ')
-    message = 'faster' if speedUpOrSlowDown else 'slower'
-    howMuch = whileInputNumeric(f"n times {message}? ")
-    exportVideoSpeeded(
-        source=source,
-        output=f'{splitFilename(source)[0]} ({howMuch}x {message}){splitFilename(source)[1]}',
-        speedUp=howMuch if speedUpOrSlowDown else None,
-        slowDown=None if speedUpOrSlowDown else howMuch,
+    isSingle = whileInputYorN('convert single stream / convert all stream with same extension')
+    if isSingle:
+        from book import mp4
+        from script_ffmpeg import convert
+        return convert(
+            source=whileInputValidFile('source: '),
+            ext=inputOrDefault('output extension', mp4),
+            removeTransformed=whileInputYorN('remove transformed? '),
+        )
+        
+    from book import mp4, mov
+    from script_ffmpeg import convertAll
+    return convertAll(
+        extIn=inputOrDefault('input extension', mov),
+        extOut=inputOrDefault('output extension', mp4),
+        includeSubDir=whileInputYorN('include subdirectories? '),
+        sign=lambda path: whileInputReject(f'sure to remove {path}? ') if whileInputYorN('sign to remove?') else None
     )
 
-def counterUpdatetVideoToGif():
+def counterVideoToImage():
+    whileEnsureLocation()
+
+    from script_ffmpeg import exportFrameSeekOnVideo
+    from book import jpg
+    return exportFrameSeekOnVideo(
+        source=whileInputValidFile('source: '),
+        time=whileInputValidTime('time delta: '),
+        ext=inputOrDefault('extension', jpg),
+    )
+
+def counterConvertVideoToGif():
     whileEnsureLocation()
 
     from script_ffmpeg import exportGifFromVideo
@@ -261,28 +292,9 @@ def counterConvertSingleImageToVideo():
         output=inputOrDefault('output name', f'{splitFilename(source)[0]}.mp4'),
     )
 
-def counterConvertStream():
-    whileEnsureLocation()
-
-    isSingle = whileInputYorN('convert single stream / convert all stream with same extension')
-    if isSingle:
-        from book import mp4
-        from script_ffmpeg import convert
-        return convert(
-            source=whileInputValidFile('source: '),
-            ext=inputOrDefault('output extension', mp4),
-            removeTransformed=whileInputYorN('remove transformed? '),
-        )
-        
-    from book import mp4, mov
-    from script_ffmpeg import convertAll
-    return convertAll(
-        extIn=inputOrDefault('input extension', mov),
-        extOut=inputOrDefault('output extension', mp4),
-        includeSubDir=whileInputYorN('include subdirectories? '),
-        sign=lambda path: whileInputReject(f'sure to remove {path}? ') if whileInputYorN('sign to remove?') else None
-    )
-
+# 
+# update
+# 
 def counterUpdateVideo():
     whileEnsureLocation()
 
@@ -291,6 +303,22 @@ def counterUpdateVideo():
         source=whileInputValidFile('source: '),
         update=whileInputValidFile('audio: '),
         removeTransformed=whileInputYorN('remove transformed? '),
+    )
+
+def counterUpdateVideoSpeedWithoutAudio():
+    whileEnsureLocation()
+
+    from script_ffmpeg import exportVideoSpeeded
+    from script_ import splitFilename
+    source = whileInputValidFile('your video: ')
+    speedUpOrSlowDown = whileInputYorN('speed up / slow down? ')
+    message = 'faster' if speedUpOrSlowDown else 'slower'
+    howMuch = whileInputNumeric(f"n times {message}? ")
+    exportVideoSpeeded(
+        source=source,
+        output=f'{splitFilename(source)[0]} ({howMuch}x {message}){splitFilename(source)[1]}',
+        speedUp=howMuch if speedUpOrSlowDown else None,
+        slowDown=None if speedUpOrSlowDown else howMuch,
     )
 
 #

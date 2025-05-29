@@ -25,6 +25,7 @@ _aMap0a = '0:a' # map all audio from first input
 _aMap1a = '1:a'
 _aMap0v0 = '0:v:0' # map first video stream from first input
 _aMap0v1 = '0:v:1' # map second video stream from first input (usually embeded thumbnail)
+_aSeek = '-ss'
 _aCodec = '-c'
 _aCodecCopy = 'copy'
 _aCompabilityAudioThumbnail = '-id3v2_version'
@@ -165,14 +166,13 @@ exportGifFromVideo = lambda source, output, qualityHigh = True, width = -1, heig
 ])
 
 # ffmpeg -i input.mov -ss 00:00:00 -vframes 1 output.jpg
-# _aSeek = '-ss'
-# frameSeekOnTimedelta = lambda source, delta, ext: subprocess.call([
-#     _aEnvironment,
-#     _aInput, source,
-#     _aSeek, str(delta),
-#     _aVideoFrames, '1',
-#     f'{source} frame{delta.seconds}.{ext}'
-# ])
+exportFrameSeekOnVideo = lambda source, time, ext: subprocess.call([
+    _aEnvironment,
+    _aInput, source,
+    _aSeek, time,
+    _aVideoFrames, '1',
+    f'{source}-({time}).{ext}'
+])
 
 # ffmpeg -i input.mov frame%03d.jpg
 # framesAll = lambda source, ext: subprocess.call([
