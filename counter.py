@@ -245,11 +245,15 @@ def counterConvertStream():
         
     from book import mp4, mov
     from script_ffmpeg import convertAll
+    signToRemove = whileInputYorN('remove converted?')
+    if signToRemove:
+        ensureRemoval = whileInputYorN('ensure removal?')
+
     return convertAll(
         extIn=inputOrDefault('input extension', mov),
         extOut=inputOrDefault('output extension', mp4),
         includeSubDir=whileInputYorN('include subdirectories? '),
-        sign=lambda path: whileInputReject(f'sure to remove {path}? ') if whileInputYorN('sign to remove?') else None
+        sign=((lambda path: whileInputReject(f'sure to remove {path}? ')) if ensureRemoval else lambda _: False) if signToRemove else (lambda _: None)
     )
 
 def counterVideoToImage():

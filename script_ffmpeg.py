@@ -227,6 +227,9 @@ def convert(source: str, ext: str, removeTransformed: bool):
         remove(source)
 
 def convertAll(extIn: str, extOut: str, includeSubDir: bool, sign):
+    if extIn == extOut:
+        print(f'all extension out ({extOut}) is same as extension in ({extIn})')
+        return
     from os import remove
     def convertThenRemove(source: str, output: str):
         _export(source, output)
