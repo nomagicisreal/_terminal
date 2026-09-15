@@ -17,6 +17,8 @@
 # 
 _aEnvironment = 'yt-dlp'
 _aEmbedThumbnail = '--embed-thumbnail'
+_aWriteThumbnail = '--write-thumbnail'
+_aSkipDownload = '--skip-download'
 _aCookiesFromBrowser = '--cookies-from-browser' # some video need account information stored on browser before view
 _aBrowserChrome = 'chrome'
 _aOutputFormat = '-o'
@@ -66,7 +68,14 @@ download = lambda url, ext, format = fieldTitle, needsCookie = False, check = Fa
     *_argsPlatform(url),
     *_argsExtension(ext),
     url,
-], check=check)
+], check=check, stderr=subprocess.PIPE)
+
+downloadThumbnail = lambda url, check = False: subprocess.run([
+    _aEnvironment,
+    _aWriteThumbnail,
+    _aSkipDownload,
+    url,
+], check=check, stderr=subprocess.PIPE)
 
 # # yt-dlp -o ...
 # downloadYoutubeAccountPlaylists = lambda ext, format = fieldTitle: subprocess.call([

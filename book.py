@@ -9,6 +9,8 @@
 # 
 uMudiDownloadAudio = 'mudi download audio by url'
 uMudiDownloadPlaylist = 'mudi download playlist by url'
+uMudiDownloadFavoriteAudiosByTag = 'mudi download favorite audios by tag'
+uMudiDownloadFavoriteThumbnailsByTag = 'mudi download favorite thumbnails by tag'
 uMudiCopyMusicTo = 'mudi copy music to path'
 uMudiCopyMusicToByTags = 'mudi copy music to path by tags'
 uRemoveFilesNameMatchPattern = 'remove files name match pattern (sign before remove)'
@@ -29,6 +31,7 @@ uShowTotalDurationOfMp3s = 'show total duration of all mp3 in path'
 
 usecasesMudi = (
     uMudiDownloadAudio, uMudiDownloadPlaylist,
+    uMudiDownloadFavoriteAudiosByTag, uMudiDownloadFavoriteThumbnailsByTag,
     uMudiCopyMusicTo, uMudiCopyMusicToByTags,
 )
 
@@ -69,9 +72,11 @@ usecasesShow = (
 # 
 # 
 def reserveMudi(u: str):
-    from counter import counterMudiDownload, counterMudiCopyTo, counterMudiCopyToByTags
+    from counter import counterMudiDownload, counterMudiFavoritesByTag, counterMudiCopyTo, counterMudiCopyToByTags
     if u == uMudiDownloadAudio: return counterMudiDownload(False)
     if u == uMudiDownloadPlaylist: return counterMudiDownload(True)
+    if u == uMudiDownloadFavoriteAudiosByTag: return counterMudiFavoritesByTag(True)
+    if u == uMudiDownloadFavoriteThumbnailsByTag: return counterMudiFavoritesByTag(False)
     if u == uMudiCopyMusicTo: return counterMudiCopyTo(inPath=True)
     if u == uMudiCopyMusicToByTags: return counterMudiCopyToByTags()
 

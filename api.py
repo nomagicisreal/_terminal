@@ -1,9 +1,7 @@
 
-
-import book
-
 def main():
     print()
+    import book
     from counter import whileInputValidOptionDict
     option = whileInputValidOptionDict({
         **{usecase : book.reserveMudi for usecase in book.usecasesMudi},

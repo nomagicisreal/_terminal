@@ -20,9 +20,15 @@ formatFile = f'{file_parent}/{fieldId}'
 #     writer = csv.DictWriter(file, fieldnames=formatCsvField)
 #     writer.writeheader()
 
-def passPermission():
-    from os import chdir, path
-    chdir(file_location)
+def ensureLocation():
+    try:
+        from os import chdir
+        chdir(file_location)
+    except:
+        print(f'you should ensure current directory is {file_location}')
+        return
+    
+    from os import path
     print(f'now in {file_location}...\n')
     if not path.isfile(file_dictionary):
         print(f'require {file_dictionary} in {file_location}')
@@ -36,7 +42,26 @@ def passPermission():
 # 
 # 
 # 
-def appendCsvThenDownload(url: str, requirePlaylist: bool):
+def csvAppend(snapshot: list):
+    print(f'append on {file_dictionary}...')
+    with open(file_dictionary, 'a', newline='', encoding=encoding) as file:
+        from csv import writer
+        from re import match
+        w = writer(file)
+        pattern = r'([\w-]{11}),(.+),\[(.+)\]'
+        for item in snapshot:
+            print(item)
+            matching = match(pattern, item)
+            if matching:
+                id = matching.group(1)
+                tags = matching.group(2)
+                title = matching.group(3)
+                w.writerow([id, tags, title])
+    
+    print('finished\n')
+
+
+def csvAppendThenDownload(url: str, requirePlaylist: bool):
     from script_ytdlp import infoOf, download, isYoutubeVideoUrlWithPlaylist
     urlContainPlaylist = isYoutubeVideoUrlWithPlaylist(url)
     info = ''
@@ -64,30 +89,13 @@ def appendCsvThenDownload(url: str, requirePlaylist: bool):
             # needsCookie=True
         ).replace(',,[', f",{whileInputNotEmpty('tags for audio: ').strip()},[")]
 
-    appendCsv(info)
+    csvAppend(info)
     from book import mp3
     download(url, mp3, formatFile,
         # needsCookie=True
     )
     
 
-def appendCsv(snapshot: list):
-    print(f'append on {file_dictionary}...')
-    with open(file_dictionary, 'a', newline='', encoding=encoding) as file:
-        from csv import writer
-        from re import match
-        w = writer(file)
-        pattern = r'([\w-]{11}),(.+),\[(.+)\]'
-        for item in snapshot:
-            print(item)
-            matching = match(pattern, item)
-            if matching:
-                id = matching.group(1)
-                tags = matching.group(2)
-                title = matching.group(3)
-                w.writerow([id, tags, title])
-    
-    print('finished\n')
 
 # 
 # 
@@ -96,7 +104,7 @@ def appendCsv(snapshot: list):
 # 
 # 
 # 
-def searchCsv(id: str = '', tagsSet: list = []):
+def csvSearch(id: str = '', tagsSet: list = []):
     if id and tagsSet:
         raise Exception(
             'you must provide only id or only tags\n'
@@ -134,28 +142,39 @@ def searchCsv(id: str = '', tagsSet: list = []):
             )
             return items
 
-def getTagsSetSorted():
+def csvGetTagsSetSorted():
     tagsSet = []
     with open(file_dictionary, 'r', encoding=encoding) as file:
         from csv import reader
-        r = reader(file)
-        next(r)
-        for item in r:
-            tags = item[1]
-            if tags in tagsSet: continue
-            tagsSet.append(tags)
+        rows = reader(file)
+        next(rows)
+        for row in rows:
+            tag = row[1]
+            if tag in tagsSet: continue
+            tagsSet.append(tag)
     
     tagsSet.sort()
     return tagsSet
 
-def filterTags(inclusive: bool, whileInputNotEmpty, whileInputReject):
+def csvGetUrlsByTag(tag: str):
+    urls = []
+    with open(file_dictionary, 'r', encoding=encoding) as file:
+        from csv import reader
+        rows = reader(file)
+        next(rows)
+        for row in rows:
+            if tag != row[1]: continue
+            urls.append(f'https://www.youtube.com/watch?v={row[0]}')
+    return urls
+
+def csvFilterTags(inclusive: bool, whileInputNotEmpty, whileInputReject):
     verb = 'include' if inclusive else 'exclude'
     print(
         '\nUSAGE:\n' +
         f'1. input a pattern to {verb} all tags containing it\n' +
         f"2. input patterns connected by ',' to {verb} all tags containing one of them\n"
     )
-    remain = getTagsSetSorted()
+    remain = csvGetTagsSetSorted()
     target = []
 
     def filter(pattern, remain: list, target: list):
@@ -211,14 +230,14 @@ def copyMusicTo(source: str, path: str):
     from script_ import nameFromPath
     copy2(
         source,
-        p.join(path, f'{searchCsv(id=nameFromPath(source))}.mp3'.replace('/', '|'))
+        p.join(path, f'{csvSearch(id=nameFromPath(source))}.mp3'.replace('/', '|'))
     )
 
 def copyMusicToByTags(path: str, whileInputNotEmpty, whileInputReject, inclusive: bool):
     import os
     os.makedirs(path, exist_ok=True)
-    tagsSet = filterTags(inclusive, whileInputNotEmpty, whileInputReject)
-    items = searchCsv(tagsSet=tagsSet)
+    tagsSet = csvFilterTags(inclusive, whileInputNotEmpty, whileInputReject)
+    items = csvSearch(tagsSet=tagsSet)
 
     print('copy on process...')
     import os.path as p

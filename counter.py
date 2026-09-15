@@ -99,7 +99,7 @@ def whileInputValidUrl(title: str = 'url: '):
     while True:
         url = whileInputNotEmpty(title)
         if validate(url): return url
-        print(f'invalid url: {url}')
+        print(f'invalid {url=}')
 
 def whileInputValidTime(title: str = 'time: ', format: str = ''):
     from script_ import isValidTime
@@ -110,6 +110,15 @@ def whileInputValidTime(title: str = 'time: ', format: str = ''):
         if isValidTime(time, format): return time
         print(f'invalid ({time=}, {format=})')
 
+def whileInputValidMudiTag(title: str = 'tag: '):
+    from script_mudi import csvGetTagsSetSorted
+    tags = csvGetTagsSetSorted()
+    tagsDemo = '\n'.join(tags)
+    while True:
+        tag = whileInputNotEmpty(title)
+        if tag in tags: return tag
+        print(f'invalid {tag=}\n-------------------available tags-------------------\n{tagsDemo}\n-------------------available tags-------------------\n')
+        
 
 def whileEnsureLocation(successShow: bool = False) -> str:
     from os import getcwd
@@ -161,16 +170,31 @@ def counterRemoveFilesMatch(signBeforeRemove: bool = True):
 # 
 # 
 def counterMudiDownload(requirePlaylist: bool):
-    from script_mudi import passPermission, appendCsvThenDownload
-    if passPermission():
-        appendCsvThenDownload(
+    from script_mudi import ensureLocation, csvAppendThenDownload
+    if ensureLocation():
+        csvAppendThenDownload(
             whileInputValidUrl(f"{'playlist' if requirePlaylist else 'audio'} url: "),
             requirePlaylist
         )
 
+def counterMudiFavoritesByTag(audioOrThumbnail: bool):
+    from script_mudi import ensureLocation, csvGetUrlsByTag
+    from script_ytdlp import download, downloadThumbnail
+    downloading = download if audioOrThumbnail else downloadThumbnail
+    from book import mp3
+    from subprocess import CalledProcessError
+    if ensureLocation():
+        urls = csvGetUrlsByTag(whileInputValidMudiTag())
+        for url in urls:
+            try:
+                downloading(url, mp3)
+            except CalledProcessError as e:
+                print(f"yt-dlp failed with exit code {e.returncode}")
+                print(f"Error Message: {e.stderr.strip()}")
+
 def counterMudiCopyTo(inPath: bool):
-    from script_mudi import passPermission
-    if passPermission():
+    from script_mudi import ensureLocation
+    if ensureLocation():
         from script_mudi import copyMusicTo, file_parent
 
         if inPath:
@@ -203,8 +227,8 @@ def counterMudiCopyTo(inPath: bool):
         )
     
 def counterMudiCopyToByTags():
-    from script_mudi import passPermission, copyMusicToByTags
-    if passPermission():
+    from script_mudi import ensureLocation, copyMusicToByTags
+    if ensureLocation():
         whileNotRejectToContinue(
             lambda: copyMusicToByTags(
                 # tags
